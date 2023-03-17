@@ -1,46 +1,64 @@
 
 %dataset sain 
-data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML01_2kmh.mat");
+data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML01_2kmh.mat");
 
 % dataset SCI Human
-%data=load("SCI Human/DM002_TDM_08_1kmh.mat");
+data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 
-% Plot of the movement
+%% Plot of the movement
 
-[N,t] = size(data.data.LHIP);
- 
-t = 1:N;
-t = t/120;
+S_L = filtering(data_healthy.data.LKNE(:,2));
+time_L = gate(S_L);
 
-%% with function
+plot_t(data_healthy.data)
+plot_t(data_SCI.data)
 
-plot_t(data.data)
 
-%% filter and calculate pos and calculate gate
+%% function plot and filter
 
 function plot_t(data)
 
-    marker = ["LHIP","LKNE", "LANK","LTOE"];
+    %marker = ["LHIP","LKNE", "LANK","LTOE"];
     N = length(data.LHIP(:,1));
     T = 1/120;
 
-%figure 
-%     legend(marker)
-%     xlabel('y'), ylabel('z')
-%     title('plot marker')
-    
-    figure
-    
+    S_L = filtering(data.LTOE(:,2));
+    time_L = gate(S_L);
+
+    S_R = filtering(data.RTOE(:,2));
+    time_R = gate(S_R);
+
+
+    %left 
+
     hip = scatter(data.LHIP(1,2),data.LHIP(1,3),'o','MarkerFaceColor','red');
     hold on 
     knee = scatter(data.LKNE(1,2),data.LKNE(1,3),'o','MarkerFaceColor','blue');
-    ankle = scatter(data.LANK(1,2),data.LANK(1,3),'o','MarkerFaceColor','yellow');
+    ankle = scatter(data.LANK(1,2),data.LANK(1,3),'o','MarkerFaceColor','magenta');
     toe = scatter(data.LTOE(1,2),data.LTOE(1,3),'o','MarkerFaceColor','green');
+    
+
+    %right
+
+    hip2 = scatter(data.RHIP(1,2),data.RHIP(1,3),'o','red');
+    knee2 = scatter(data.RKNE(1,2),data.RKNE(1,3),'o','blue');
+    ankle2 = scatter(data.RANK(1,2),data.RANK(1,3),'o','magenta');
+    toe2 = scatter(data.RTOE(1,2),data.RTOE(1,3),'o','green');
+
+    
+
     hold off 
 
     axis([1 1200 0 1200])
+    xlabel('x'), ylabel('y')
+    title('kinematic reconstruction')
 
     for n = 2:N
+
+        move_L = text(1000,1000,"left : " + time_L(n));
+        move_R = text(1000,900,"right : " + time_R(n));
+        
+
         hip.XData = data.LHIP(n,2);
         hip.YData = data.LHIP(n,3);
         knee.XData = data.LKNE(n,2);
@@ -49,33 +67,48 @@ function plot_t(data)
         ankle.YData = data.LANK(n,3);
         toe.XData = data.LTOE(n,2);
         toe.YData = data.LTOE(n,3);
+
+        hip2.XData = data.RHIP(n,2);
+        hip2.YData = data.RHIP(n,3);
+        knee2.XData = data.RKNE(n,2);
+        knee2.YData = data.RKNE(n,3);
+        ankle2.XData = data.RANK(n,2);
+        ankle2.YData = data.RANK(n,3);
+        toe2.XData = data.RTOE(n,2);
+        toe2.YData = data.RTOE(n,3);
+
+        
         drawnow
         pause(T)
+
+        delete(move_L)
+        delete(move_R)
     end
 
-
 end
+
 
 function [S_f] = filtering(S)
     S_f = lowpass(highpass(S,1e-1,1e2),0.6,1e2, 'ImpulseResponse','iir');
 end
     
-function [time,col] = gate(S)    
+function time = gate(S)    
     G = gradient(S);
-    time = {};
-    col = {};
+    time = {""};
+
+    plot(G)
 
     for i = 2:length(G)
         if sign(G(i)) ~= sign(G(i-1))
-            time = [time,i/100];
             if sign(G(i)) > 0
-                col = [col,'r'];
+                time = [time,"foot strike"];
             else
-                col = [col,'b'];
+                time = [time,"foot off"];
             end
+        else
+            time = [time,""];
         end
     end
-
 end
 
 %% try to plot markers 

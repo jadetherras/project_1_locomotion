@@ -1,5 +1,5 @@
 
-%dataset sain 
+dataset sain 
 data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML01_2kmh.mat");
 
 [n,p] = size(data.data.LSol)
@@ -14,7 +14,7 @@ legend('LSol','LMG','LTA','LST','LVlat','LRF','Lil','RSol','RMG','RTA','RST','RV
 xlabel('Time'), ylabel('mV')
 title('plot')
 
-%% Plot of the movement
+% Plot of the movement
 
 [n2,t2] = size(data.data.LHIP);
  
@@ -88,13 +88,13 @@ xlabel('front/back'), ylabel('up/down')
 title('plot toe marker')
 savefig('figure/H_1_2kmh_toe_yz.fig')
 
-%% dataset SCI Human
-%data=load("SCI Human/DM002_TDM_08_1kmh.mat");
+% dataset SCI Human
+data=load("SCI Human/DM002_TDM_08_1kmh.mat");
 
-%[n2,p2] = size(data.data.LHIP)
-%
-%t2 = 1:n2;
-%t2 = t2/100;
+[n2,p2] = size(data.data.LHIP)
+
+t2 = 1:n2;
+t2 = t2/100;
 
 %% normal plotting
 
