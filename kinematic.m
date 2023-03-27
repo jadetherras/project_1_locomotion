@@ -35,7 +35,7 @@ N1 = 191; %in pos
 N2 = 356;
 
 %plot the gate cycle
-plot_gate(data_healthy.data,N1,N2,'B')
+plot_gate(data_healthy.data,N1,N2,'B',2,0.1)
 
 %% function
 
@@ -84,34 +84,42 @@ end
 % N1 is the start position
 % N2 is the end position
 % side is a string giving the limb to plot => L/R/B (left, right,both)
-function plot_gate(data,N1,N2,side)
-    
-    %axis([1 1200 0 1200])
+function plot_gate(data,N1,N2,side,frame, dec)
+
     xlabel('x'), ylabel('y')
     title('kinematic reconstruction')
+ 
+    Min = round(N1/frame);
+    disp(Min)
+    Max = round(N2/frame);
+    disp(Max)
 
-    
-    for n = N1:N2
-        %dec = (n-N1)*2;
+    for Val = Min:Max
+        
+        n = Val*frame;
+        disp(n)
+        first = true;
 
         if side == 'L' || side == 'B'
 
-            plot([data.LHIP(n,2) data.LKNE(n,2)],[data.LHIP(n,3) data.LKNE(n,3)],'black')
-            if n == N1 
+            plot([data.LHIP(n,2)+dec*(n-Min*Val) data.LKNE(n,2)+dec*(n-Min*Val)],[data.LHIP(n,3) data.LKNE(n,3)],'black')
+            if first
                 hold on
+                first = false;
             end
-            plot([data.LKNE(n,2) data.LANK(n,2)],[data.LKNE(n,3) data.LANK(n,3)],'black')
-            plot([data.LANK(n,2) data.LTOE(n,2)],[data.LANK(n,3) data.LTOE(n,3)],'black')
+            plot([data.LKNE(n,2)+dec*(n-Min*Val) data.LANK(n,2)+dec*(n-Min*Val)],[data.LKNE(n,3) data.LANK(n,3)],'black')
+            plot([data.LANK(n,2)+dec*(n-Min*Val) data.LTOE(n,2)+dec*(n-Min*Val)],[data.LANK(n,3) data.LTOE(n,3)],'black')
         end
 
         if side == 'R' || side == 'B'
 
-            plot([data.RHIP(n,2) data.RKNE(n,2)],[data.RHIP(n,3) data.RKNE(n,3)],'green')
-            if n == N1 && side == 'R'
+            plot([data.RHIP(n,2)+dec*(n-Min*Val) data.RKNE(n,2)+dec*(n-Min*Val)],[data.RHIP(n,3) data.RKNE(n,3)],'green')
+            if first && side == 'R'
                 hold on
+                first = false;
             end
-            plot([data.RKNE(n,2) data.RANK(n,2)],[data.RKNE(n,3) data.RANK(n,3)],'green')
-            plot([data.RANK(n,2) data.RTOE(n,2)],[data.RANK(n,3) data.RTOE(n,3)],'green')
+            plot([data.RKNE(n,2)+dec*(n-Min*Val) data.RANK(n,2)+dec*(n-Min*Val)],[data.RKNE(n,3) data.RANK(n,3)],'green')
+            plot([data.RANK(n,2)+dec*(n-Min*Val) data.RTOE(n,2)+dec*(n-Min*Val)],[data.RANK(n,3) data.RTOE(n,3)],'green')
         end
 
     end
