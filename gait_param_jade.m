@@ -13,6 +13,13 @@ data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 
 %% gate parameters
 
+gate = cut_gate(data_healthy.data);
+
+function swing_duration()
+
+end
+
+
 
 %% Basic functions
 
@@ -26,6 +33,7 @@ function [S_f] = filtering(S)
 end
     
 % cut_gate : cut the date in gate cycle (using a gradient)
+% each value represent a foot strike
 % data is the dataset
 % gate is a array of position 
 function gate = cut_gate(data) 
@@ -41,7 +49,8 @@ function gate = cut_gate(data)
 
     % calculate the position
     for i = 2:length(G)
-        if sign(G(i)) ~= sign(G(i-1)) % if change sign, pass 0
+        if sign(G(i)) ~= sign(G(i-1)) && sign(G(i)) > 0 
+            % if change sign, pass 0 and >0 foot strike
                 gate = [gate,i];
         end
     end
