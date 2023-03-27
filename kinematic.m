@@ -19,7 +19,16 @@ data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 
 % animation : decomment the one you want (healthy, SCI)
 
-%plot_t(data_healthy.data)
+%test range
+%N = length(data_healthy.data.LHIP(:,1));
+start = 346;
+stop = 508;
+
+% ex 3km.h
+T = 1/120;
+dec = 3000/3600*T*1000;
+
+plot_t(data_healthy.data, start, stop,dec) 
 %plot_t(data_SCI.data)
 
 % plot a gate : chose the marker for the gate calculation and a gate
@@ -27,15 +36,9 @@ data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 %filter the data (here toe) and gate calculation
 %S_L = filtering(data_healthy.data.LTOE(:,2));
 % time_L = gate(S_L);
-%N1 = 191; 
-%N2 = 356;
-
-%test range
-N1 = 200;
-N2 = 1200;
 
 %plot the gate cycle
-%plot_gate(data_healthy.data,N1,N2,'L',5,2)
+plot_gate(data_healthy.data,start,stop,'B',2,dec)
 
 %% function
 
@@ -131,12 +134,13 @@ end
 % the left legs is represented by full circular markers
 % the left legs is represented by empty circular markers
 % on the corner, a text display "foot strike/foot off" at the correct time
-% the toe is use to calculate the gate
+% the toe is use to cal
+% culate the gate
 % data is the dataset
-function plot_t(data)
+function plot_t(data, start, stop,dec)
 
     %marker = ["LHIP","LKNE", "LANK","LTOE"];
-    N = length(data.LHIP(:,1));
+    %N = length(data.LHIP(:,1));
     T = 1/120;
 
     % calculate timing left and right 
@@ -148,47 +152,46 @@ function plot_t(data)
 
 
     %left plot
-    hip = scatter(data.LHIP(1,2),data.LHIP(1,3),'o','MarkerFaceColor','red');
+    hip = scatter(data.LHIP(start,2),data.LHIP(start,3),'o','MarkerFaceColor','red');
     hold on 
-    knee = scatter(data.LKNE(1,2),data.LKNE(1,3),'o','MarkerFaceColor','blue');
-    ankle = scatter(data.LANK(1,2),data.LANK(1,3),'o','MarkerFaceColor','magenta');
-    toe = scatter(data.LTOE(1,2),data.LTOE(1,3),'o','MarkerFaceColor','green');
+    knee = scatter(data.LKNE(start,2),data.LKNE(start,3),'o','MarkerFaceColor','blue');
+    ankle = scatter(data.LANK(start,2),data.LANK(start,3),'o','MarkerFaceColor','magenta');
+    toe = scatter(data.LTOE(start,2),data.LTOE(start,3),'o','MarkerFaceColor','green');
     
 
     %right plot
-    hip2 = scatter(data.RHIP(1,2),data.RHIP(1,3),'o','red');
-    knee2 = scatter(data.RKNE(1,2),data.RKNE(1,3),'o','blue');
-    ankle2 = scatter(data.RANK(1,2),data.RANK(1,3),'o','magenta');
-    toe2 = scatter(data.RTOE(1,2),data.RTOE(1,3),'o','green');
+    hip2 = scatter(data.RHIP(start,2),data.RHIP(start,3),'o','red');
+    knee2 = scatter(data.RKNE(start,2),data.RKNE(start,3),'o','blue');
+    ankle2 = scatter(data.RANK(start,2),data.RANK(start,3),'o','magenta');
+    toe2 = scatter(data.RTOE(start,2),data.RTOE(start,3),'o','green');
 
     hold off 
 
-    axis([1 1200 0 1200])
+    axis([-1000 1000 100 1200])
     xlabel('x'), ylabel('y')
     title('kinematic reconstruction')
 
     %update the markers and text at each time
-    for n = 2:N
-
+    for n = (start+1):stop
         move_L = text(1000,1000,"left : " + time_L(n));
         move_R = text(1000,900,"right : " + time_R(n));
 
-        hip.XData = data.LHIP(n,2);
+        hip.XData = data.LHIP(n,2)-dec*(n-start);
         hip.YData = data.LHIP(n,3);
-        knee.XData = data.LKNE(n,2);
+        knee.XData = data.LKNE(n,2)-dec*(n-start);
         knee.YData = data.LKNE(n,3);
-        ankle.XData = data.LANK(n,2);
+        ankle.XData = data.LANK(n,2)-dec*(n-start);
         ankle.YData = data.LANK(n,3);
-        toe.XData = data.LTOE(n,2);
+        toe.XData = data.LTOE(n,2)-dec*(n-start);
         toe.YData = data.LTOE(n,3);
 
-        hip2.XData = data.RHIP(n,2);
+        hip2.XData = data.RHIP(n,2)-dec*(n-start);
         hip2.YData = data.RHIP(n,3);
-        knee2.XData = data.RKNE(n,2);
+        knee2.XData = data.RKNE(n,2)-dec*(n-start);
         knee2.YData = data.RKNE(n,3);
-        ankle2.XData = data.RANK(n,2);
+        ankle2.XData = data.RANK(n,2)-dec*(n-start);
         ankle2.YData = data.RANK(n,3);
-        toe2.XData = data.RTOE(n,2);
+        toe2.XData = data.RTOE(n,2)-dec*(n-start);
         toe2.YData = data.RTOE(n,3);
         
         % give the time to see before change
@@ -200,11 +203,3 @@ function plot_t(data)
     end
 
 end
-
-%% try to plot markers 
-
-% idea : plot the marker in 2d (not x) moving and add the timer on it ! 
-% good way to verify but maybe not simple
-
-%to do : 
-%accuracy comparison and do it for all the data + cut and plot
