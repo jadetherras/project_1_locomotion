@@ -1,8 +1,8 @@
 
-dataset sain 
+%dataset sain 
 data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML01_2kmh.mat");
 
-[n,p] = size(data.data.LSol)
+[n,p] = size(data.data.LSol);
 t = 1:n;
 t = t/1000;
 
