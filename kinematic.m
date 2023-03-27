@@ -25,13 +25,13 @@ data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 % plot a gate : chose the marker for the gate calculation and a gate
 
 %filter the data (here toe) and gate calculation
-S_L = filtering(data_healthy.data.LTOE(:,2));
-[pos,time_L] = gate(S_L);
-%N1 = 191; %in pos
+%S_L = filtering(data_healthy.data.LTOE(:,2));
+% time_L = gate(S_L);
+%N1 = 191; 
 %N2 = 356;
 
-%test
-N1 = 200; %in pos
+%test range
+N1 = 200;
 N2 = 1200;
 
 %plot the gate cycle
@@ -50,15 +50,13 @@ end
     
 % gate : take a signal and calculate the gate cycle (using the gradient)
 % time take the value foot off and foot strike at the correct timing
-% pos cut the dataset in gate cycle
-function [pos,time] = gate(S) 
+function time = gate(S) 
 
     % calculate the gradient
     G = gradient(S);
     
     %initialisation
     time = {''};
-    pos = {};
 
     % calculate the position
     for i = 2:length(G)
@@ -67,7 +65,6 @@ function [pos,time] = gate(S)
                 time = [time,"foot strike"]; 
             else
                 time = [time,"foot off"];
-                pos = [pos,i];
             end
         else
             time = [time,""];
@@ -83,6 +80,12 @@ end
 % N1 is the start position
 % N2 is the end position
 % side is a string giving the limb to plot => L/R/B (left, right,both)
+% frame say how much to display (if 1 all the timepoint, if 5 every 5
+% delta_time for exemple)
+% dec permit to introduce a decalage in the y direction. We walk on a
+% treadmill so all the gate appear on the same position. If we want to
+% introduce a movement in y or visualise more gate cycle we can introduce a
+% decalage, like a velocity. if 0 all fixed. 
 function plot_gate(data,N1,N2,side,frame, dec)
 
     xlabel('x'), ylabel('y')
@@ -138,10 +141,10 @@ function plot_t(data)
 
     % calculate timing left and right 
     S_L = filtering(data.LTOE(:,2));
-    [pos_L, time_L] = gate(S_L);
+    time_L = gate(S_L);
 
     S_R = filtering(data.RTOE(:,2));
-    [pos_R, time_R] = gate(S_R);
+    time_R = gate(S_R);
 
 
     %left plot
