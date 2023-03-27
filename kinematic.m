@@ -1,15 +1,11 @@
 
 %% Kinematic file
 
-% In this file, we analize the kinematic data
+% In this file, we visualise the kinematic data
 % filter and plot the signal
 % cut in gate cycle
 % animation of the movement
 % plot the gate cycle
-
-%to do :
-
-% calculate the parameters using function
 
 %% Loading the data
 
@@ -30,12 +26,16 @@ data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 
 %filter the data (here toe) and gate calculation
 S_L = filtering(data_healthy.data.LTOE(:,2));
-[time_L,pos] = gate(S_L);
-N1 = 191; %in pos
-N2 = 356;
+[pos,time_L] = gate(S_L);
+%N1 = 191; %in pos
+%N2 = 356;
+
+%test
+N1 = 200; %in pos
+N2 = 1200;
 
 %plot the gate cycle
-plot_gate(data_healthy.data,N1,N2,'B',2,0.1)
+%plot_gate(data_healthy.data,N1,N2,'L',5,2)
 
 %% function
 
@@ -50,8 +50,8 @@ end
     
 % gate : take a signal and calculate the gate cycle (using the gradient)
 % time take the value foot off and foot strike at the correct timing
-% pos is the list of the position of the gate events 
-function [time,pos] = gate(S) 
+% pos cut the dataset in gate cycle
+function [pos,time] = gate(S) 
 
     % calculate the gradient
     G = gradient(S);
@@ -67,9 +67,8 @@ function [time,pos] = gate(S)
                 time = [time,"foot strike"]; 
             else
                 time = [time,"foot off"];
+                pos = [pos,i];
             end
-
-            pos = [pos,i];
         else
             time = [time,""];
         end
@@ -89,37 +88,35 @@ function plot_gate(data,N1,N2,side,frame, dec)
     xlabel('x'), ylabel('y')
     title('kinematic reconstruction')
  
-    Min = round(N1/frame);
-    disp(Min)
-    Max = round(N2/frame);
-    disp(Max)
+    Min = ceil(N1/frame);
+
+    Max = ceil(N2/frame);
 
     for Val = Min:Max
         
         n = Val*frame;
-        disp(n)
         first = true;
 
         if side == 'L' || side == 'B'
 
-            plot([data.LHIP(n,2)+dec*(n-Min*Val) data.LKNE(n,2)+dec*(n-Min*Val)],[data.LHIP(n,3) data.LKNE(n,3)],'black')
+            plot([data.LHIP(n,2)+dec*(n-Min*frame) data.LKNE(n,2)+dec*(n-Min*frame)],[data.LHIP(n,3) data.LKNE(n,3)],'black')
             if first
                 hold on
                 first = false;
             end
-            plot([data.LKNE(n,2)+dec*(n-Min*Val) data.LANK(n,2)+dec*(n-Min*Val)],[data.LKNE(n,3) data.LANK(n,3)],'black')
-            plot([data.LANK(n,2)+dec*(n-Min*Val) data.LTOE(n,2)+dec*(n-Min*Val)],[data.LANK(n,3) data.LTOE(n,3)],'black')
+            plot([data.LKNE(n,2)+dec*(n-Min*frame) data.LANK(n,2)+dec*(n-Min*frame)],[data.LKNE(n,3) data.LANK(n,3)],'black')
+            plot([data.LANK(n,2)+dec*(n-Min*frame) data.LTOE(n,2)+dec*(n-Min*frame)],[data.LANK(n,3) data.LTOE(n,3)],'black')
         end
 
         if side == 'R' || side == 'B'
 
-            plot([data.RHIP(n,2)+dec*(n-Min*Val) data.RKNE(n,2)+dec*(n-Min*Val)],[data.RHIP(n,3) data.RKNE(n,3)],'green')
+            plot([data.RHIP(n,2)+dec*(n-Min*frame) data.RKNE(n,2)+dec*(n-Min*frame)],[data.RHIP(n,3) data.RKNE(n,3)],'green')
             if first && side == 'R'
                 hold on
                 first = false;
             end
-            plot([data.RKNE(n,2)+dec*(n-Min*Val) data.RANK(n,2)+dec*(n-Min*Val)],[data.RKNE(n,3) data.RANK(n,3)],'green')
-            plot([data.RANK(n,2)+dec*(n-Min*Val) data.RTOE(n,2)+dec*(n-Min*Val)],[data.RANK(n,3) data.RTOE(n,3)],'green')
+            plot([data.RKNE(n,2)+dec*(n-Min*frame) data.RANK(n,2)+dec*(n-Min*frame)],[data.RKNE(n,3) data.RANK(n,3)],'green')
+            plot([data.RANK(n,2)+dec*(n-Min*frame) data.RTOE(n,2)+dec*(n-Min*frame)],[data.RANK(n,3) data.RTOE(n,3)],'green')
         end
 
     end
@@ -141,10 +138,10 @@ function plot_t(data)
 
     % calculate timing left and right 
     S_L = filtering(data.LTOE(:,2));
-    time_L = gate(S_L);
+    [pos_L, time_L] = gate(S_L);
 
     S_R = filtering(data.RTOE(:,2));
-    time_R = gate(S_R);
+    [pos_R, time_R] = gate(S_R);
 
 
     %left plot
