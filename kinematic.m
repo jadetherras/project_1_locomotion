@@ -21,8 +21,8 @@ data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 
 %test range
 %N = length(data_healthy.data.LHIP(:,1));
-start = 346;
-stop = 508;
+start = 27;
+stop = 191;
 
 % ex 3km.h
 T = 1/120;
