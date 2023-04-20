@@ -2,6 +2,8 @@
 %% gait parameters file - PCA
 
 % In this file, we calculate some gait parameters
+% We did the PCA and biplot
+% we explore the result
 
 %% Loading the data
 
@@ -28,13 +30,13 @@ data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 % we can do all at one, just for optimisation
 
 % test plot
-% plot(data_healthy.data.LTOE(27:191,2))
-%     hold on
-%     plot(data_healthy.data.RTOE(27:191,2))
-%     plot(filtering(data_healthy.data.LTOE(27:191,2)))
-%     plot(filtering(data_healthy.data.RTOE(27:191,2)))
-%     legend(["1","2","3","4"])
-%     hold off
+ plot(data_healthy.data.LTOE(27:191,2))
+     hold on
+     plot(data_healthy.data.RTOE(27:191,2))
+     plot(filtering(data_healthy.data.LTOE(27:191,2)))
+     plot(filtering(data_healthy.data.RTOE(27:191,2)))
+     legend(["1","2","3","4"])
+     hold off
 
 % calculate parameters
 

@@ -1,7 +1,8 @@
 
 %% Kinematic file
 
-% In this file, we visualise the kinematic data
+% In this file, we visualise the kinematic data and the gate detection 
+
 % filter and plot the signal
 % cut in gate cycle
 % animation of the movement
@@ -20,25 +21,29 @@ data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 % animation : decomment the one you want (healthy, SCI)
 
 %test range
+
+%if you want all the data
 %N = length(data_healthy.data.LHIP(:,1));
-start = 27;
+
+%if you want just one gait
+start = 27; %this values come from the gate detection, we decided to plot one gait randomly
 stop = 191;
 
-% ex 3km.h
+% ex 3km.h 
 T = 1/120;
-dec = 3000/3600*T*1000;
-
-plot_t(data_healthy.data, start, stop,dec) 
-%plot_t(data_SCI.data)
-
-% plot a gate : chose the marker for the gate calculation and a gate
+dec = 3000/3600*T*1000; %change here the velocity
 
 %filter the data (here toe) and gate calculation
 %S_L = filtering(data_healthy.data.LTOE(:,2));
-% time_L = gate(S_L);
+%time_L = gate(S_L);
 
 %plot the gate cycle
-plot_gate(data_healthy.data,start,stop,'B',2,dec)
+%plot_gate(data_healthy.data,start,stop,'B',2,dec)
+
+%animate the data for comparison with visualisation
+
+%animate(data_healthy.data, start, stop,dec) 
+%animate(data_SCI.data)
 
 %% function
 
@@ -130,17 +135,16 @@ function plot_gate(data,N1,N2,side,frame, dec)
     hold off
 end
 
-% plot_t : plot a animation of a dataset
+% animate : plot a animation of a dataset
 % the left legs is represented by full circular markers
 % the left legs is represented by empty circular markers
 % on the corner, a text display "foot strike/foot off" at the correct time
 % the toe is use to cal
 % culate the gate
 % data is the dataset
-function plot_t(data, start, stop,dec)
+function animate(data, start, stop,dec)
 
     %marker = ["LHIP","LKNE", "LANK","LTOE"];
-    %N = length(data.LHIP(:,1));
     T = 1/120;
 
     % calculate timing left and right 
