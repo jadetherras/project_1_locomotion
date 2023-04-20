@@ -71,17 +71,17 @@ parameters = [parameters_healthy_1_2kmh, parameters_healthy_2_2kmh,parameters_he
 parameters = transpose(parameters);
 %% PCA
 
-%vbls = {'GD','SDL','SDR','SPL','SPR','SHL','SLL','SHR','SLR','varlatL','varverL','maxjointL','minjointL','maxangleL','varlatR','varverR','maxjointR','minjointR','maxangleR'};
-vbls = {'GD','SDL','SDR','SPL','SPR','SHL','SLL','SHR','SLR','varlatL','maxjointL','minjointL','maxangleL','varlatR','maxjointR','minjointR','maxangleR'};
+%vbls = {'GD','SDL','SDR','SPL','SPR','DSP','SHL','SLL','SHR','SLR','varlatL','varverL','maxjointL','minjointL','maxangleL','varlatR','varverR','maxjointR','minjointR','maxangleR'};
+vbls = {'GD','SDL','SDR','SPL','SPR','DSP','SHL','SLL','SHR','SLR','varlatL','maxjointL','minjointL','maxangleL','varlatR','maxjointR','minjointR','maxangleR'};
 
 
 [coefs,score] = pca(parameters);
 
-%color = [transpose(zeros(NH,1)+1), transpose(zeros(NSCI,1)+2)];
-%color = transpose(color);
-
-color = [transpose(zeros(N1H,1)+1), transpose(zeros(N2H,1)+2), transpose(zeros(N3H,1)+3), transpose(zeros(N1SCI,1)+4),transpose(zeros(N2SCI,1)+5),transpose(zeros(NSCInoESS,1)+6)];
+color = [transpose(zeros(NH,1)+1), transpose(zeros(NSCI,1)+2)];
 color = transpose(color);
+
+%color = [transpose(zeros(N1H,1)+1), transpose(zeros(N2H,1)+2), transpose(zeros(N3H,1)+3), transpose(zeros(N1SCI,1)+4),transpose(zeros(N2SCI,1)+5),transpose(zeros(NSCInoESS,1)+6)];
+%color = transpose(color);
 
 pc1 = score(:,1);
 pc2 = score(:,2);
@@ -128,6 +128,8 @@ function parameters = gate_parameters(data, start, stop,S)
     parameters.stance_percentage_left = (parameters.gate_duration_sec - parameters.swing_duration_left_sec)/parameters.gate_duration_sec;
 
     parameters.stance_percentage_right = (parameters.gate_duration_sec - parameters.swing_duration_right_sec)/parameters.gate_duration_sec;
+
+    parameters.double_stance_percentage = 100*max(0,(parameters.gate_duration_sec-(parameters.swing_duration_left_sec+parameters.swing_duration_right_sec)/parameters.gate_duration_sec));
     
     parameters.step_height_left_mm = max(data.LANK(start:stop,3))-min(data.LANK(start:stop,3));
 
@@ -172,13 +174,13 @@ function parameters = gate_parameters(data, start, stop,S)
     vel_angleR = gradient(angle_radR);
 
 
-    parameters.var_lateral_hip_left_mm = var(x_hip_latL);
+    %parameters.var_lateral_hip_left_mm = var(x_hip_latL);
     %parameters.var_ver_hip_left_mm = var(y3L);
     parameters.max_joint_angle_left_deg = max(angle_radL);
     parameters.min_joint_angle_left_deg = min(angle_radL);
     parameters.max_angle_vel_left_deg = max(abs(vel_angleL));
 
-    parameters.var_lateral_hip_right_mm = var(x_hip_latR);
+    %parameters.var_lateral_hip_right_mm = var(x_hip_latR);
     %parameters.var_ver_hip_right_mm = var(y3R);
     parameters.max_joint_angle_right_deg = max(angle_radR);
     parameters.min_joint_angle_right_deg = min(angle_radR);
