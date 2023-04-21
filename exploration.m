@@ -1,25 +1,34 @@
 
+%% Loading the data
+
 %dataset sain 
-data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML01_2kmh.mat");
+data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML01_3kmh.mat");
 
-[n,p] = size(data.data.LSol);
+% dataset SCI Human
+data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
+
+[n,p] = size(data_healthy.data.LSol);
 t = 1:n;
-t = t/1000;
+t = t/120;
 
-%% EMG data plot
+[n2,p2] = size(data_SCI.data.LHIP);
+ 
+t2 = 1:n2;
+t2 = t2/100;
+
+%% EMG data plot - exploring dataset
+
+%choose dataset
+
+data = data_healthy;
+%data = data_SCI;
+
+% plot all data
 
 plot(t,[data.data.LSol,data.data.LMG,data.data.LTA,data.data.LST,data.data.LVLat,data.data.LRF,data.data.LIl,data.data.RSol,data.data.RMG,data.data.RTA,data.data.RST,data.data.RVLat,data.data.RRF]),
 legend('LSol','LMG','LTA','LST','LVlat','LRF','Lil','RSol','RMG','RTA','RST','RVLat','RRF')
-
 xlabel('Time'), ylabel('mV')
 title('plot')
-
-% Plot of the movement
-
-[n2,t2] = size(data.data.LHIP);
- 
-t2 = 1:n2;
-t2 = t2/120;
 
 %global
 plot(t2, [data.data.LHIP,data.data.LKNE,data.data.LANK,data.data.LTOE,data.data.RHIP,data.data.RKNE,data.data.RANK,data.data.RTOE])
@@ -88,15 +97,9 @@ xlabel('front/back'), ylabel('up/down')
 title('plot toe marker')
 savefig('figure/H_1_2kmh_toe_yz.fig')
 
-% % dataset SCI Human
-% data=load("SCI Human/DM002_TDM_08_1kmh.mat");
-% 
-% [n2,p2] = size(data.data.LHIP)
-% 
-% t2 = 1:n2;
-% t2 = t2/100;
 
-%% normal plotting
+
+%% plotting the movement on space
 
 %hip
 figure
@@ -158,14 +161,12 @@ legend('movement')
 xlabel('front/back'), ylabel('up/down')
 title('plot toe marker')
 savefig('figure/SCI_1kmh_toe_yz.fig')
-%}
 
 
 %% filter the signal without function
 
 y = highpass(data.data.LTOE(:,2),1e-1,1e2);
 y_toe = lowpass(y,0.6,1e2, 'ImpulseResponse','iir');
-
 G = gradient(y_toe);
 G2 = gradient(G);
 
@@ -187,14 +188,6 @@ legend('ori','y')
 xlabel('Time'), ylabel('Displacement')
 title('plot knee marker')
 savefig('figure/SCI_1kmh_knee_filter.fig')
-
-% comparison knee, toe
-figure
-plot(t2,[y_toe,y_knee])
-legend('toe','knee')
-xlabel('Time'), ylabel('Displacement')
-title('plot toe-knee marker')
-savefig('figure/SCI_1kmh_toe_knee_filter.fig')
 
 
 time = {};
@@ -255,7 +248,7 @@ xlabel('Time'), ylabel('Displacement')
 title('plot knee marker')
 savefig('figure/SCI_1kmh_toe_filter.fig')
 
-
+% comparison knee, toe
 figure
 plot(t2,[S_f_toe,S_f_knee])
 legend('toe','knee')
@@ -285,8 +278,17 @@ end
 
 %% filter and calculate pos and calculate gate
 
-function [S_f,time,col] = filtering(S)
+
+function [S_f] = filtering(S)
+
+    %low, high pass filter
     S_f = lowpass(highpass(S,1e-1,1e2),0.6,1e2, 'ImpulseResponse','iir');
+
+end
+
+% calculation : take a signal and calculate the gate cycle (using the gradient
+function [S_f,time,col] = calculation(S)
+    S_f = filtering(S);
     
     G = gradient(S_f);
     time = {};
@@ -294,7 +296,7 @@ function [S_f,time,col] = filtering(S)
 
     for i = 2:length(G)
         if sign(G(i)) ~= sign(G(i-1))
-            time = [time,i/100];
+            time = [time,i];
             if sign(G(i)) > 0
                 col = [col,'r'];
             else
