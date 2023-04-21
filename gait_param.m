@@ -5,6 +5,8 @@
 % We did the PCA and biplot
 % we explore the result
 
+close all;
+
 %% Loading the data jade
 
 %dataset sain 
@@ -60,14 +62,36 @@ data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
 % calculate parameters
 
+%Gate = cut_gate(data_healthy_1_3kmh.data);
+ 
+%   n = size(data_healthy_1_2kmh.data.LTOE(:,2));
+%   t = 12166:12348;
+%   t = t/100;
+%   plot(t,[data_healthy_1_2kmh.data.LTOE(12166:12348,2),filtering(data_healthy_1_2kmh.data.LTOE(12166:12348,2)),data_healthy_1_2kmh.data.RTOE(12166:12348,2),filtering(data_healthy_1_2kmh.data.RTOE(12166:12348,2))]);
+%   legend('L','L f','R','R f');
+% 
+% figure
+% t = 2056:2355;
+% t = t/100;
+% plot(t,[data_healthy_1_1kmh.data.LTOE(2056:2355,2),filtering(data_healthy_1_1kmh.data.LTOE(2056:2355,2)),data_healthy_1_1kmh.data.RTOE(2056:2355,2),filtering(data_healthy_1_1kmh.data.RTOE(2056:2355,2))]);
+% legend('L','L f','R','R f');
+% 
+% gate_parameters(data_healthy_1_1kmh.data, 2056, 2355,1)
+% 
+% figure
+% t = 211:494;
+% t = t/100;
+% plot(t,[data_healthy_1_1kmh.data.LTOE(211:494,2),filtering(data_healthy_1_1kmh.data.LTOE(211:494,2)),data_healthy_1_1kmh.data.RTOE(211:494,2),filtering(data_healthy_1_1kmh.data.RTOE(211:494,2))]);
+% legend('L','L f','R','R f');
+
 parameters_healthy_1_2kmh = calculated_parameters(data_healthy_1_2kmh.data,2);
 parameters_healthy_2_2kmh = calculated_parameters(data_healthy_2_2kmh.data,2);
-
+  
 N2H = size(parameters_healthy_1_2kmh,2) + size(parameters_healthy_2_2kmh,2);
-
+ 
 parameters_healthy_1_1kmh = calculated_parameters(data_healthy_1_1kmh.data,1);
 parameters_healthy_2_1kmh = calculated_parameters(data_healthy_2_1kmh.data,1);
-
+  
 N1H = size(parameters_healthy_1_1kmh,2) + size(parameters_healthy_2_1kmh,2);
 
 parameters_healthy_1_3kmh = calculated_parameters(data_healthy_1_3kmh.data,3);
@@ -90,15 +114,23 @@ NSCI = N1SCI + N2SCI + NSCInoESS;
 %merge
 parameters = [parameters_healthy_1_2kmh, parameters_healthy_2_2kmh,parameters_healthy_1_1kmh,parameters_healthy_2_1kmh,parameters_healthy_1_3kmh,parameters_healthy_2_3kmh,parameters_SCI_1kmh,parameters_SCI_2kmh,parameters_SCI_1kmh_NoEES];
 
-parameters = transpose(parameters);
+
+%from structure to matrix for the PCA analysis
+PCA = [];
+for i = 1:(length(parameters))
+    PCA = [PCA,cell2mat(struct2cell(parameters(i)))];
+end
+
+PCA = normalize(transpose(PCA));
+
+val_label = fieldnames(parameters(1));
 %% PCA
 
 %vbls = {'GD','SDL','SDR','SPL','SPR','DSP','SHL','SLL','SHR','SLR','varlatL','varverL','maxjointL','minjointL','maxangleL','varlatR','varverR','maxjointR','minjointR','maxangleR'};
 %vbls = {'GD','SDL','SDR','SPL','SPR','DSP','SHL','SLL','SHR','SLR','varlatL','maxjointL','minjointL','maxangleL','varlatR','maxjointR','minjointR','maxangleR'};
-vbls = {'GD','SDL','SDR','SPL','SPR','DSP','SHL','SLL','SHR','SLR','varlatL', 'varlatR', 'varHipL', 'varHipR', 'varsthL', 'varsthr','varstlL','varstlR','maxjointL','minjointL','maxangleL' ,'maxjointR','minjointR','maxangleR'};
+%vbls = {'GD','SDL','SDR','SPL','SPR','DSP','SHL','SLL','SHR','SLR','varlatL', 'varlatR', 'varHipL', 'varHipR', 'varsthL', 'varsthr','varstlL','varstlR','maxjointL','minjointL','maxangleL' ,'maxjointR','minjointR','maxangleR'};
 
-
-[coefs,score] = pca(parameters);
+[coefs,score] = pca(PCA);
 
 %healthy vs SCI
 % color = [transpose(zeros(NH,1)+1), transpose(zeros(NSCI,1)+2)];
@@ -114,100 +146,160 @@ color = transpose(color);
 
 pc1 = score(:,1);
 pc2 = score(:,2);
-gscatter(pc1,pc2,color)
-%biplot(coef(:,1:3))
-%biplot(coefs(:,1:2),'Scores',score(:,1:2),'VarLabels',vbls);
 
+figure
+gscatter(pc1,pc2,color);
+
+figure
+biplot(coefs(:,1:3),'VarLabels',val_label);
+
+figure
+biplot(coefs(:,1:2),'VarLabels',val_label);
+%biplot(coefs(:,1:2),'Scores',score(:,1:2),'VarLabels',val_label);
+
+%% Basic functions
+
+% filtering : take a signal (ex the y value for a marker) and return a
+% clean the signal S -> S_f
+function [S_f] = filtering(S)
+
+    %low, high pass filter
+    d1 = designfilt("lowpassiir",FilterOrder=2, HalfPowerFrequency=0.03,DesignMethod="butter");
+    S_f = filtfilt(d1,S);
+end
+
+
+% cut_gate : cut the date in gate cycle (using a gradient)
+% each value represent a foot strike
+% data is the dataset
+% gate is a array of position 
+function Gate = cut_gate(data) 
+
+    %filtering
+%     S_L = filtering(data.LTOE(:,2));
+%     S_R = filtering(data.RTOE(:,2));
+
+%     filtering
+     S_L = data.LTOE(:,2);
+     S_R = data.RTOE(:,2);
+
+    % calculate the gradient
+    Gl = gradient(S_L);
+    Gr = gradient(S_R);
+
+    %initialisation
+    Gate = [];
+    gate = [];
+    
+    on_gate = false;
+
+    % calculate the position
+    i = 1;
+    while i <=(length(Gl)-1)
+        i = i+1;
+        if sign(Gl(i)) ~= sign(Gl(i-1)) && sign(Gl(i)) < 0 
+            
+            if isfield(gate,'strikeR')
+                gate.offnext = i;
+                Gate = [Gate,gate];
+            end
+
+            on_gate = true;
+            gate = [];
+            gate.offL = i;
+
+            while on_gate && i <=(length(Gl)-1)
+                i = i+1;
+                if sign(Gl(i-1)) ~= sign(Gl(i)) && sign(Gl(i)) > 0 && isfield(gate,'offL')
+                    gate.strikeL = i;
+                elseif sign(Gr(i-1)) ~= sign(Gr(i)) && sign(Gr(i)) < 0 && isfield(gate,'strikeL')
+                    gate.offR = i;
+                elseif sign(Gr(i-1)) ~= sign(Gr(i)) && sign(Gr(i)) > 0 && isfield(gate,'offR')
+                    gate.strikeR = i;
+                    on_gate = false;
+                end
+            end
+
+        end
+    end
+end
 
 %% gate parameters functions
 
 function parameters = calculated_parameters(data,S)
 
-cut = cut_gate(data);
 
-parameters = [];
+    %cut the data in gate
+    Gate = cut_gate(data);
 
-    for i = 1:(length(cut)-1) 
-        parameters = [parameters,cell2mat(struct2cell(gate_parameters(data, cut(i),cut(i+1)-1,S)))];
+    %data.LTOE(:,2) = filtering(data.LTOE(:,2));
+    %data.RTOE(:,2) = filtering(data.RTOE(:,2));
+
+
+
+    %initiate the structure of parameters
+    parameters = [];
+
+    %get the gate dependent parameters
+    for i = 1:(length(Gate)) 
+        parameters = [parameters,gate_parameters(data,Gate(i),S)];
     end
+
+    %get the global values (for exemple the mean of the swing duration)
+    Global = get_global(parameters);
+   
+    %get the global values dependent parameters (for exemple the
+    %variability)
+    parameters = gate_global_parameters(parameters,Global);
 
 end
 
-function parameters = gate_parameters(data, start, stop,S)
+function parameter = gate_parameters(data,gate,S)
     
-    % preli
+    %preli
 
     T = 1/data.marker_sr;
     speed = S*1000/3.6;
 
-    % jade 
+    parameter.gate_duration_sec = (gate.offnext-gate.offL)*T;
 
-    [off_distL, off_indexL] = max(data.LTOE(start:stop,2));
-    [strike_distL,strike_indexL] = min(data.LTOE(start:stop,2));
+    parameter.swing_duration_left_sec = (gate.strikeL-gate.offL)*T;
     
-    [off_distR, off_indexR] = max(data.RTOE(start:stop,2));
-    [strike_distR,strike_indexR] = min(data.RTOE(start:stop,2));
+    parameter.swing_duration_right_sec = (gate.strikeR-gate.offR)*T;
 
-     %on the whole data in order to use them for the mean value and variability
-    [off_distL_all, off_indexL_all] = max(data.LTOE(:,2));
-    [strike_distL_all,strike_indexL_all] = min(data.LTOE(:,2));
+    parameter.stance_percentage_left = (parameter.gate_duration_sec - parameter.swing_duration_left_sec)/parameter.gate_duration_sec;
+
+    parameter.stance_percentage_right = (parameter.gate_duration_sec - parameter.swing_duration_right_sec)/parameter.gate_duration_sec;
+
+    parameter.double_stance_percentage = 100*max(0,(parameter.gate_duration_sec-(parameter.swing_duration_left_sec+parameter.swing_duration_right_sec))/parameter.gate_duration_sec);
     
-    [off_distR_all, off_indexR_all] = max(data.RTOE(:,2));
-    [strike_distR_all,strike_indexR_all] = min(data.RTOE(:,2));
-
-    parameters.gate_duration_sec = (stop-start)*T;
-
-    parameters.swing_duration_left_sec = (strike_indexL-off_indexL)*T;
-    swing_duration_left_sec_all = (strike_indexL_all-off_indexL_all)*T;
+    parameter.step_height_left_mm = max(data.LANK(gate.offL:gate.offnext,3))-min(data.LANK(gate.offL:gate.offnext,3));
     
-    parameters.swing_duration_right_sec = (strike_indexR-off_indexR)*T;
-    swing_duration_right_sec_all = (strike_indexR_all-off_indexR_all)*T;
-
-    parameters.stance_percentage_left = (parameters.gate_duration_sec - parameters.swing_duration_left_sec)/parameters.gate_duration_sec;
-
-    parameters.stance_percentage_right = (parameters.gate_duration_sec - parameters.swing_duration_right_sec)/parameters.gate_duration_sec;
-
-    parameters.double_stance_percentage = 100*max(0,(parameters.gate_duration_sec-(parameters.swing_duration_left_sec+parameters.swing_duration_right_sec)/parameters.gate_duration_sec));
+    parameter.step_length_left_mm = (abs(data.LTOE(gate.strikeL,2) -data.LTOE(gate.offL,2)) + parameter.swing_duration_left_sec*speed);
     
-    parameters.step_height_left_mm = max(data.LANK(start:stop,3))-min(data.LANK(start:stop,3));
-    mean_step_height_left_mm = mean(max(data.LANK(:,3))-min(data.LANK(:,3)));
-
-    parameters.step_length_left_mm = abs(strike_distL -(off_distL+parameters.swing_duration_left_sec*speed));
-    %parameters.step_length_left_mm = abs(strike_distL -off_distL);
-    mean_step_length_left_mm = mean(abs(strike_distL_all -(off_distL_all+swing_duration_left_sec_all*speed)));
-
-    parameters.step_height_right_mm = max(data.RANK(start:stop,3))-min(data.RANK(start:stop,3));
-    mean_step_height_right_mm = mean(max(data.RANK(:,3))-min(data.RANK(:,3)));
-
-    parameters.step_length_right_mm = abs(strike_distR -(off_distR +parameters.swing_duration_right_sec*speed));
-    %parameters.step_length_right_mm = abs(strike_distR -off_distR);
-    mean_step_length_right_mm = mean(abs(strike_distR_all -(off_distR_all +swing_duration_right_sec_all*speed)));
-
-
-    % lena
-
-    x1L = data.LKNE(start:stop,2);
-    x3L = data.LHIP(start:stop,2);
-    x2L = data.LANK(start:stop,2);
+    parameter.step_height_right_mm = max(data.RANK(gate.offL:gate.offnext,3))-min(data.RANK(gate.offL:gate.offnext,3));
     
-    %z-space
-    y1L = data.LKNE(start:stop,3);
-    y3L = data.LHIP(start:stop,3);
-    y2L = data.LANK(start:stop,3);
-
-    x1R = data.RKNE(start:stop,2);
-    x3R = data.RHIP(start:stop,2);
-    x2R = data.RANK(start:stop,2);
+    parameter.step_length_right_mm = (abs(data.RTOE(gate.strikeR,2)-(data.RTOE(gate.offR,2))) + parameter.swing_duration_right_sec*speed);
     
-    %z-space
-    y1R = data.RKNE(start:stop,3);
-    y3R = data.RHIP(start:stop,3);
-    y2R = data.RANK(start:stop,3);
+    x1L = data.LKNE(gate.offL:gate.offnext,2);
+    x3L = data.LHIP(gate.offL:gate.offnext,2);
+    x2L = data.LANK(gate.offL:gate.offnext,2);
+    
+    y1L = data.LKNE(gate.offL:gate.offnext,3);
+    y3L = data.LHIP(gate.offL:gate.offnext,3);
+    y2L = data.LANK(gate.offL:gate.offnext,3);
 
+    x1R = data.RKNE(gate.offL:gate.offnext,2);
+    x3R = data.RHIP(gate.offL:gate.offnext,2);
+    x2R = data.RANK(gate.offL:gate.offnext,2);
+    
+    y1R = data.RKNE(gate.offL:gate.offnext,3);
+    y3R = data.RHIP(gate.offL:gate.offnext,3);
+    y2R = data.RANK(gate.offL:gate.offnext,3);
 
-    x_hip_latL = data.LHIP(start:stop,1);
+    x_hip_latL = data.LHIP(gate.offL:gate.offnext,1);
     mean_x_hip_latL = mean(data.LHIP(:,1));
-    x_hip_latR = data.RHIP(start:stop,1);
+    x_hip_latR = data.RHIP(gate.offL:gate.offnext,1);
     mean_x_hip_latR = mean(data.RHIP(:,1));
 
     mean_y3L = mean(data.LHIP(:,3));
@@ -222,62 +314,78 @@ function parameters = gate_parameters(data, start, stop,S)
     vel_angleR = gradient(angle_radR);
 
     % variability is defined as the difference with the mean value
-    parameters.var_lateral_hip_left_mm = mean(abs(mean_x_hip_latL-x_hip_latL));
-    parameters.var_lateral_hip_right_mm = mean(abs(mean_x_hip_latR-x_hip_latR));
-    parameters.var_ver_hip_left_mm = mean(abs(mean_y3L-y3L));
-    parameters.var_ver_hip_right_mm = mean(abs(mean_y3R-y3R));
-%     parameters.var_step_height_left_mm = abs(mean_step_height_left_mm- parameters.step_height_left_mm);
-%     parameters.var_step_height_right_mm = abs(mean_step_height_right_mm- parameters.step_height_right_mm);
-%     parameters.var_step_length_left_mm = abs(mean_step_length_left_mm- parameters.step_length_left_mm);
-%     parameters.var_step_length_right_mm = abs(mean_step_length_right_mm- parameters.step_length_right_mm);
-% 
+    parameter.var_lateral_hip_left_mm = mean(abs(mean_x_hip_latL-x_hip_latL));
+    parameter.var_lateral_hip_right_mm = mean(abs(mean_x_hip_latR-x_hip_latR));
+    parameter.var_ver_hip_left_mm = mean(abs(mean_y3L-y3L));
+    parameter.var_ver_hip_right_mm = mean(abs(mean_y3R-y3R));
 
-    parameters.max_joint_angle_left_deg = max(angle_radL);
-    parameters.min_joint_angle_left_deg = min(angle_radL);
-    parameters.max_angle_vel_left_deg = max(abs(vel_angleL));
+    parameter.max_joint_angle_left_deg = max(angle_radL);
+    parameter.min_joint_angle_left_deg = min(angle_radL);
+    parameter.max_angle_vel_left_deg = max(abs(vel_angleL));
 
     
-    %parameters.var_ver_hip_right_mm = var(y3R);
-    parameters.max_joint_angle_right_deg = max(angle_radR);
-    parameters.min_joint_angle_right_deg = min(angle_radR);
-    parameters.max_angle_vel_right_deg = max(abs(vel_angleR));
+    parameters.var_ver_hip_right_mm = var(y3R);
+    parameter.max_joint_angle_right_deg = max(angle_radR);
+    parameter.min_joint_angle_right_deg = min(angle_radR);
+    parameter.max_angle_vel_right_deg = max(abs(vel_angleR));
 
 end
 
+function Global = get_global(parameters)
+
+    Global = [];
+
+    mean_gate_duration = 0;
+
+    mean_swing_left = 0;
+    mean_swing_right = 0;
+
+    mean_step_height_left = 0;
+    mean_step_height_right = 0;
+
+    mean_step_length_left = 0;
+    mean_step_length_right = 0;
 
 
-%% Basic functions
+    if (not(isempty(parameters)))
+        for i = 1:(length(parameters))
 
-% filtering : take a signal (ex the y value for a marker) and return a
-% clean the signal S -> S_f
-function [S_f] = filtering(S)
+            mean_gate_duration = mean_gate_duration + parameters(i).gate_duration_sec;
 
-    %low, high pass filter
-    S_f = lowpass(highpass(S,1e-1,1e2),0.6,1e2, 'ImpulseResponse','iir');
+            mean_swing_left = mean_swing_left + parameters(i).swing_duration_left_sec;
+            mean_swing_right = mean_swing_right + parameters(i).swing_duration_right_sec;
 
-end
+            mean_step_height_left = mean_step_height_left + parameters(i).step_height_left_mm;
+            mean_step_height_right = mean_step_height_right + parameters(i).step_height_right_mm;
 
+            mean_step_length_left = mean_step_length_left + parameters(i).step_length_left_mm;
+            mean_step_length_right = mean_step_length_right + parameters(i).step_length_right_mm;
 
-% cut_gate : cut the date in gate cycle (using a gradient)
-% each value represent a foot strike
-% data is the dataset
-% gate is a array of position 
-function gate = cut_gate(data) 
-
-    %filtering
-    S_L = filtering(data.LTOE(:,2));
-
-    % calculate the gradient
-    G = gradient(S_L);
-
-    %initialisation
-    gate = [];
-
-    % calculate the position
-    for i = 2:length(G)
-        if sign(G(i)) ~= sign(G(i-1)) && sign(G(i)) < 0 
-            % if change sign, pass 0 and <0 foot off
-                gate = [gate,i];
         end
+
+        Global.mean_gate_duration = mean_gate_duration/length(parameters);
+        Global.mean_swing_left = mean_swing_left/length(parameters);
+        Global.mean_swing_right = mean_swing_right/length(parameters);
+
+        Global.mean_step_height_left = mean_step_height_left/length(parameters);
+        Global.mean_step_height_right = mean_step_height_right/length(parameters);
+
+        Global.mean_step_length_left = mean_step_length_left/length(parameters);
+        Global.mean_step_length_right = mean_step_length_right/length(parameters);
+
     end
+
+end
+
+function parameters = gate_global_parameters(parameters,Global)
+
+    %get the global values dependent parameters (for exemple the
+    %variability)
+    for i = 1:(length(parameters))
+         parameters(i).var_step_height_left_mm = abs(Global.mean_step_height_left- parameters(i).step_height_left_mm);
+         parameters(i).var_step_height_right_mm = abs(Global.mean_step_height_right- parameters(i).step_height_right_mm);
+         parameters(i).var_step_length_left_mm = abs(Global.mean_step_length_left- parameters(i).step_length_left_mm);
+         parameters(i).var_step_length_right_mm = abs(Global.mean_step_length_right- parameters(i).step_length_right_mm);
+    end
+
 end

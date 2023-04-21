@@ -10,8 +10,10 @@
 
 %% Loading the data
 
+close all;
+
 %dataset sain 
-data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML01_3kmh.mat");
+data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
 
 % dataset SCI Human
 data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
@@ -26,19 +28,19 @@ data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 %N = length(data_healthy.data.LHIP(:,1));
 
 %if you want just one gait
-start = 27; %this values come from the gate detection, we decided to plot one gait randomly
-stop = 191;
+start = 1; %this values come from the gate detection, we decided to plot one gait randomly
+stop = 2000;
 
 % ex 3km.h 
-T = 1/120;
-dec = 3000/3600*T*1000; %change here the velocity
+T = 1/100;
+dec = 1000/3600*T*1000; %change here the velocity
 
 %filter the data (here toe) and gate calculation
 %S_L = filtering(data_healthy.data.LTOE(:,2));
 %time_L = gate(S_L);
 
 %plot the gate cycle
-%plot_gate(data_healthy.data,start,stop,'B',2,dec)
+plot_gate(data_healthy.data,start,stop,'B',2,dec)
 
 %animate the data for comparison with visualisation
 
@@ -52,8 +54,8 @@ dec = 3000/3600*T*1000; %change here the velocity
 function [S_f] = filtering(S)
 
     %low, high pass filter
-    S_f = lowpass(highpass(S,1e-1,1e2),0.6,1e2, 'ImpulseResponse','iir');
-
+    d1 = designfilt("lowpassiir",FilterOrder=2, HalfPowerFrequency=0.03,DesignMethod="butter");
+    S_f = filtfilt(d1,S);
 end
     
 % gate : take a signal and calculate the gate cycle (using the gradient)
