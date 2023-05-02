@@ -13,7 +13,7 @@
 close all;
 
 %dataset sain 
-data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
+%data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
 
 % dataset SCI Human
 data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
@@ -28,19 +28,23 @@ data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 %N = length(data_healthy.data.LHIP(:,1));
 
 %if you want just one gait
-start = 1; %this values come from the gate detection, we decided to plot one gait randomly
-stop = 2000;
+start = 100; %this values come from the gate detection, we decided to plot one gait randomly
+stop = 1000;
 
-% ex 3km.h 
 T = 1/100;
 dec = 1000/3600*T*1000; %change here the velocity
+
+%visualisation 2 limb
+double_dec = 1000;
+%double_dec = 0;
+
 
 %filter the data (here toe) and gate calculation
 %S_L = filtering(data_healthy.data.LTOE(:,2));
 %time_L = gate(S_L);
 
 %plot the gate cycle
-plot_gate(data_healthy.data,start,stop,'B',2,dec)
+plot_gate(data_SCI.data,start,stop,'B',1,dec,double_dec)
 
 %animate the data for comparison with visualisation
 
@@ -83,6 +87,61 @@ function time = gate(S)
 
 end
 
+% cut_gate : cut the date in gate cycle (using a gradient)
+% each value represent a foot strike
+% data is the dataset
+% gate is a array of position 
+function Gate = cut_gate(data) 
+
+    %filtering
+     S_L = filtering(data.LTOE(:,2));
+     S_R = filtering(data.RTOE(:,2));
+
+%     filtering
+%     S_L = data.LTOE(:,2);
+%     S_R = data.RTOE(:,2);
+
+    % calculate the gradient
+    Gl = gradient(S_L);
+    Gr = gradient(S_R);
+
+    %initialisation
+    Gate = [];
+    gate = [];
+    
+    on_gate = false;
+
+    % calculate the position
+    i = 1;
+    while i <=(length(Gl)-1)
+        i = i+1;
+        if sign(Gl(i)) ~= sign(Gl(i-1)) && sign(Gl(i)) < 0 
+            
+            if isfield(gate,'strikeR')
+                gate.offnext = i;
+                Gate = [Gate,gate];
+            end
+
+            on_gate = true;
+            gate = [];
+            gate.offL = i;
+
+            while on_gate && i <=(length(Gl)-1)
+                i = i+1;
+                if sign(Gl(i-1)) ~= sign(Gl(i)) && sign(Gl(i)) > 0 && isfield(gate,'offL')
+                    gate.strikeL = i;
+                elseif sign(Gr(i-1)) ~= sign(Gr(i)) && sign(Gr(i)) < 0 && isfield(gate,'strikeL')
+                    gate.offR = i;
+                elseif sign(Gr(i-1)) ~= sign(Gr(i)) && sign(Gr(i)) > 0 && isfield(gate,'offR')
+                    gate.strikeR = i;
+                    on_gate = false;
+                end
+            end
+
+        end
+    end
+end
+
 % plot_gate : take the dataset, a starting time and ending time (ex
 % start/end of a gate cycle)
 % plot the gate as a line for each time 
@@ -96,40 +155,78 @@ end
 % treadmill so all the gate appear on the same position. If we want to
 % introduce a movement in y or visualise more gate cycle we can introduce a
 % decalage, like a velocity. if 0 all fixed. 
-function plot_gate(data,N1,N2,side,frame, dec)
+function plot_gate(data,N1,N2,side,frame, dec, double_dec)
 
     xlabel('x'), ylabel('y')
     title('kinematic reconstruction')
- 
+
     Min = ceil(N1/frame);
 
     Max = ceil(N2/frame);
+
+    Gate = cut_gate(data);
+
+    V = 1;
+    while V < length(Gate)-1 && Gate(V).offL < Min
+        V = V+1;
+    end
 
     for Val = Min:Max
         
         n = Val*frame;
         first = true;
 
+        color_left = 'black';
+        color_right = 'green';
+        color_gateoff = 'red';
+        color_gatestrike = 'blue';
+
+
+        Lcolor = color_left;
+        Rcolor = color_right;
+        onevent = false;
+        
+        if onevent == false 
+            if n == Gate(V).offL
+                Lcolor = color_gateoff;
+                onevent = true;
+            elseif n == Gate(V).strikeL
+                Lcolor = color_gatestrike;
+                onevent = true;
+            elseif n == Gate(V).offR
+                Rcolor = color_gateoff;
+                onevent = true;
+            elseif n == Gate(V).strikeR
+                Rcolor = color_gatestrike;
+                onevent = true;
+                V = V+1;
+            end
+        else 
+            Lcolor = color_left;
+            Rcolor = color_right;
+            onevent = false;
+        end
+
         if side == 'L' || side == 'B'
 
-            plot([data.LHIP(n,2)+dec*(n-Min*frame) data.LKNE(n,2)+dec*(n-Min*frame)],[data.LHIP(n,3) data.LKNE(n,3)],'black')
+            plot([data.LHIP(n,2)-dec*(n-Min*frame) data.LKNE(n,2)-dec*(n-Min*frame)],[data.LHIP(n,3) data.LKNE(n,3)],Lcolor)
             if first
                 hold on
                 first = false;
             end
-            plot([data.LKNE(n,2)+dec*(n-Min*frame) data.LANK(n,2)+dec*(n-Min*frame)],[data.LKNE(n,3) data.LANK(n,3)],'black')
-            plot([data.LANK(n,2)+dec*(n-Min*frame) data.LTOE(n,2)+dec*(n-Min*frame)],[data.LANK(n,3) data.LTOE(n,3)],'black')
+            plot([data.LKNE(n,2)-dec*(n-Min*frame) data.LANK(n,2)-dec*(n-Min*frame)],[data.LKNE(n,3) data.LANK(n,3)],Lcolor)
+            plot([data.LANK(n,2)-dec*(n-Min*frame) data.LTOE(n,2)-dec*(n-Min*frame)],[data.LANK(n,3) data.LTOE(n,3)],Lcolor)
         end
 
         if side == 'R' || side == 'B'
 
-            plot([data.RHIP(n,2)+dec*(n-Min*frame) data.RKNE(n,2)+dec*(n-Min*frame)],[data.RHIP(n,3) data.RKNE(n,3)],'green')
+            plot([data.RHIP(n,2)-dec*(n-Min*frame) data.RKNE(n,2)-dec*(n-Min*frame)],[data.RHIP(n,3)+double_dec data.RKNE(n,3)+double_dec],Rcolor)
             if first && side == 'R'
                 hold on
                 first = false;
             end
-            plot([data.RKNE(n,2)+dec*(n-Min*frame) data.RANK(n,2)+dec*(n-Min*frame)],[data.RKNE(n,3) data.RANK(n,3)],'green')
-            plot([data.RANK(n,2)+dec*(n-Min*frame) data.RTOE(n,2)+dec*(n-Min*frame)],[data.RANK(n,3) data.RTOE(n,3)],'green')
+            plot([data.RKNE(n,2)-dec*(n-Min*frame) data.RANK(n,2)-dec*(n-Min*frame)],[data.RKNE(n,3)+double_dec data.RANK(n,3)+double_dec],Rcolor)
+            plot([data.RANK(n,2)-dec*(n-Min*frame) data.RTOE(n,2)-dec*(n-Min*frame)],[data.RANK(n,3)+double_dec data.RTOE(n,3)+double_dec],Rcolor)
         end
 
     end
