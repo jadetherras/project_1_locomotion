@@ -4,28 +4,28 @@
 % In this file, we calculate some gait parameters
 % We did the PCA and biplot
 % we explore the result
-
+clear;
 close all;
 
 %% Loading the data jade
 
-%dataset sain 
-data_healthy_1_2kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML01_2kmh.mat");
-data_healthy_2_2kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML02_2kmh.mat");
-
-data_healthy_1_1kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
-data_healthy_2_1kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
-
-data_healthy_1_3kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML01_3kmh.mat");
-data_healthy_2_3kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
-
-% dataset SCI Human
-data_SCI_1kmh=load("SCI Human/DM002_TDM_08_1kmh.mat");
-data_SCI_2kmh=load("SCI Human/DM002_TDM_08_2kmh.mat");
-
-%dataset SCI Human noEES
-
-data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
+% %dataset sain 
+% data_healthy_1_2kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML01_2kmh.mat");
+% data_healthy_2_2kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML02_2kmh.mat");
+% 
+% data_healthy_1_1kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
+% data_healthy_2_1kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
+% 
+% data_healthy_1_3kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML01_3kmh.mat");
+% data_healthy_2_3kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
+% 
+% % dataset SCI Human
+% data_SCI_1kmh=load("SCI Human/DM002_TDM_08_1kmh.mat");
+% data_SCI_2kmh=load("SCI Human/DM002_TDM_08_2kmh.mat");
+% 
+% %dataset SCI Human noEES
+% 
+% data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
 % %% Loading the data Lena
 % 
@@ -46,6 +46,27 @@ data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 % %dataset SCI Human noEES
 % 
 % data_SCI_1kmh_NoEES=load("Dataset SCI Human/SCI Human/DM002_TDM_1kmh_NoEES.mat");
+
+
+%% Loading the data Lucas
+
+%dataset sain 
+data_healthy_1_2kmh=load("Healthy/1_AML01_2kmh.mat");
+data_healthy_2_2kmh=load("Healthy/1_AML02_2kmh.mat");
+
+data_healthy_1_1kmh=load("Healthy/3_AML01_1kmh.mat");
+data_healthy_2_1kmh=load("Healthy/3_AML02_1kmh.mat");
+
+data_healthy_1_3kmh=load("Healthy/4_AML01_3kmh.mat");
+data_healthy_2_3kmh=load("Healthy/4_AML02_3kmh.mat");
+
+% dataset SCI Human
+data_SCI_1kmh=load("SCI Human/DM002_TDM_08_1kmh.mat");
+data_SCI_2kmh=load("SCI Human/DM002_TDM_08_2kmh.mat");
+
+%dataset SCI Human noEES
+
+data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
 %% calculation of all parameters
 
@@ -246,7 +267,7 @@ function parameters = calculated_parameters(data,S)
     end
 
     %get the global values (for exemple the mean of the swing duration)
-    Global = get_global(parameters);
+    Global = get_global(data,parameters);
    
     %get the global values dependent parameters (for exemple the
     %variability)
@@ -324,14 +345,27 @@ function parameter = gate_parameters(data,gate,S)
     parameter.max_angle_vel_left_deg = max(abs(vel_angleL));
 
     
-    parameters.var_ver_hip_right_mm = var(y3R);
+    parameter.var_ver_hip_right_mm = var(y3R);
     parameter.max_joint_angle_right_deg = max(angle_radR);
     parameter.min_joint_angle_right_deg = min(angle_radR);
     parameter.max_angle_vel_right_deg = max(abs(vel_angleR));
 
+    % EMG
+
+    L_ag  = data.LMG(gate.offL:gate.offnext);
+    L_ant = data.LTA(gate.offL:gate.offnext);
+
+    R_ag  = data.RMG(gate.offL:gate.offnext);
+    R_ant = data.RTA(gate.offL:gate.offnext);
+    
+    L_CI = emgLib.coactivation_index(L_ant,L_ag);
+    R_CI = emgLib.coactivation_index(R_ant,R_ag);
+    
+    parameter.mean_coactivation_index = (L_CI + R_CI)/2;
+    
 end
 
-function Global = get_global(parameters)
+function Global = get_global(data,parameters)
 
     Global = [];
 
@@ -372,6 +406,12 @@ function Global = get_global(parameters)
 
         Global.mean_step_length_left = mean_step_length_left/length(parameters);
         Global.mean_step_length_right = mean_step_length_right/length(parameters);
+
+        %EMG
+        LTA_filtered = emgLib.filter_emg(data.LTA,0);
+        [burst_duration,Global.mean_amplitude_emg,Global.integral_emg,Global.rms_emg] = emgLib.emg_parameters(LTA_filtered,0);
+        Global.mean_burst_duration = mean(burst_duration);
+    
 
     end
 
