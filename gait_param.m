@@ -9,23 +9,23 @@ close all;
 
 %% Loading the data jade
 
-% %dataset sain 
-% data_healthy_1_2kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML01_2kmh.mat");
-% data_healthy_2_2kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML02_2kmh.mat");
-% 
-% data_healthy_1_1kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
-% data_healthy_2_1kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
-% 
-% data_healthy_1_3kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML01_3kmh.mat");
-% data_healthy_2_3kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
-% 
-% % dataset SCI Human
-% data_SCI_1kmh=load("SCI Human/DM002_TDM_08_1kmh.mat");
-% data_SCI_2kmh=load("SCI Human/DM002_TDM_08_2kmh.mat");
-% 
-% %dataset SCI Human noEES
-% 
-% data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
+%dataset sain 
+data_healthy_1_2kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML01_2kmh.mat");
+data_healthy_2_2kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML02_2kmh.mat");
+
+data_healthy_1_1kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
+data_healthy_2_1kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
+
+data_healthy_1_3kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML01_3kmh.mat");
+data_healthy_2_3kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
+
+% dataset SCI Human
+data_SCI_1kmh=load("SCI Human/DM002_TDM_08_1kmh.mat");
+data_SCI_2kmh=load("SCI Human/DM002_TDM_08_2kmh.mat");
+
+%dataset SCI Human noEES
+
+data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
 % %% Loading the data Lena
 % 
@@ -50,23 +50,23 @@ close all;
 
 %% Loading the data Lucas
 
-%dataset sain 
-data_healthy_1_2kmh=load("Healthy/1_AML01_2kmh.mat");
-data_healthy_2_2kmh=load("Healthy/1_AML02_2kmh.mat");
-
-data_healthy_1_1kmh=load("Healthy/3_AML01_1kmh.mat");
-data_healthy_2_1kmh=load("Healthy/3_AML02_1kmh.mat");
-
-data_healthy_1_3kmh=load("Healthy/4_AML01_3kmh.mat");
-data_healthy_2_3kmh=load("Healthy/4_AML02_3kmh.mat");
-
-% dataset SCI Human
-data_SCI_1kmh=load("SCI Human/DM002_TDM_08_1kmh.mat");
-data_SCI_2kmh=load("SCI Human/DM002_TDM_08_2kmh.mat");
-
-%dataset SCI Human noEES
-
-data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
+% %dataset sain 
+% data_healthy_1_2kmh=load("Healthy/1_AML01_2kmh.mat");
+% data_healthy_2_2kmh=load("Healthy/1_AML02_2kmh.mat");
+% 
+% data_healthy_1_1kmh=load("Healthy/3_AML01_1kmh.mat");
+% data_healthy_2_1kmh=load("Healthy/3_AML02_1kmh.mat");
+% 
+% data_healthy_1_3kmh=load("Healthy/4_AML01_3kmh.mat");
+% data_healthy_2_3kmh=load("Healthy/4_AML02_3kmh.mat");
+% 
+% % dataset SCI Human
+% data_SCI_1kmh=load("SCI Human/DM002_TDM_08_1kmh.mat");
+% data_SCI_2kmh=load("SCI Human/DM002_TDM_08_2kmh.mat");
+% 
+% %dataset SCI Human noEES
+% 
+% data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
 %% calculation of all parameters
 
@@ -105,15 +105,15 @@ data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 % plot(t,[data_healthy_1_1kmh.data.LTOE(211:494,2),filtering(data_healthy_1_1kmh.data.LTOE(211:494,2)),data_healthy_1_1kmh.data.RTOE(211:494,2),filtering(data_healthy_1_1kmh.data.RTOE(211:494,2))]);
 % legend('L','L f','R','R f');
 
-parameters_healthy_1_2kmh = calculated_parameters(data_healthy_1_2kmh.data,2);
-parameters_healthy_2_2kmh = calculated_parameters(data_healthy_2_2kmh.data,2);
-  
-N2H = size(parameters_healthy_1_2kmh,2) + size(parameters_healthy_2_2kmh,2);
- 
 parameters_healthy_1_1kmh = calculated_parameters(data_healthy_1_1kmh.data,1);
 parameters_healthy_2_1kmh = calculated_parameters(data_healthy_2_1kmh.data,1);
   
 N1H = size(parameters_healthy_1_1kmh,2) + size(parameters_healthy_2_1kmh,2);
+
+parameters_healthy_1_2kmh = calculated_parameters(data_healthy_1_2kmh.data,2);
+parameters_healthy_2_2kmh = calculated_parameters(data_healthy_2_2kmh.data,2);
+  
+N2H = size(parameters_healthy_1_2kmh,2) + size(parameters_healthy_2_2kmh,2);
 
 parameters_healthy_1_3kmh = calculated_parameters(data_healthy_1_3kmh.data,3);
 parameters_healthy_2_3kmh = calculated_parameters(data_healthy_2_3kmh.data,3);
@@ -133,7 +133,7 @@ NH = N1H + N2H + N3H;
 NSCI = N1SCI + N2SCI + NSCInoESS;
 
 %merge
-parameters = [parameters_healthy_1_2kmh, parameters_healthy_2_2kmh,parameters_healthy_1_1kmh,parameters_healthy_2_1kmh,parameters_healthy_1_3kmh,parameters_healthy_2_3kmh,parameters_SCI_1kmh,parameters_SCI_2kmh,parameters_SCI_1kmh_NoEES];
+parameters = [parameters_healthy_1_1kmh,parameters_healthy_2_1kmh,parameters_healthy_1_2kmh, parameters_healthy_2_2kmh,parameters_healthy_1_3kmh,parameters_healthy_2_3kmh,parameters_SCI_1kmh,parameters_SCI_2kmh,parameters_SCI_1kmh_NoEES];
 
 
 %from structure to matrix for the PCA analysis
@@ -147,10 +147,6 @@ PCA = normalize(transpose(PCA));
 val_label = fieldnames(parameters(1));
 %% PCA
 
-%vbls = {'GD','SDL','SDR','SPL','SPR','DSP','SHL','SLL','SHR','SLR','varlatL','varverL','maxjointL','minjointL','maxangleL','varlatR','varverR','maxjointR','minjointR','maxangleR'};
-%vbls = {'GD','SDL','SDR','SPL','SPR','DSP','SHL','SLL','SHR','SLR','varlatL','maxjointL','minjointL','maxangleL','varlatR','maxjointR','minjointR','maxangleR'};
-%vbls = {'GD','SDL','SDR','SPL','SPR','DSP','SHL','SLL','SHR','SLR','varlatL', 'varlatR', 'varHipL', 'varHipR', 'varsthL', 'varsthr','varstlL','varstlR','maxjointL','minjointL','maxangleL' ,'maxjointR','minjointR','maxangleR'};
-
 [coefs,score] = pca(PCA);
 
 %healthy vs SCI
@@ -158,12 +154,12 @@ val_label = fieldnames(parameters(1));
 % color = transpose(color);
 
 %healthy vs SCI vs stimulation
-color = [transpose(zeros(NH,1)+1), transpose(zeros(N1SCI + N2SCI,1)+2), transpose(zeros(NSCInoESS,1)+3)];
-color = transpose(color);
+%color = [transpose(zeros(NH,1)+1), transpose(zeros(N1SCI + N2SCI,1)+2), transpose(zeros(NSCInoESS,1)+3)];
+%color = transpose(color);
 
 %VS differents conditions
-%color = [transpose(zeros(N1H,1)+1), transpose(zeros(N2H,1)+2), transpose(zeros(N3H,1)+3), transpose(zeros(N1SCI,1)+4),transpose(zeros(N2SCI,1)+5),transpose(zeros(NSCInoESS,1)+6)];
-%color = transpose(color);
+color = [transpose(zeros(N1H,1)+1), transpose(zeros(N2H,1)+2), transpose(zeros(N3H,1)+3), transpose(zeros(N1SCI,1)+4),transpose(zeros(N2SCI,1)+5),transpose(zeros(NSCInoESS,1)+6)];
+color = transpose(color);
 
 pc1 = score(:,1);
 pc2 = score(:,2);
@@ -197,12 +193,12 @@ end
 function Gate = cut_gate(data) 
 
     %filtering
-%     S_L = filtering(data.LTOE(:,2));
-%     S_R = filtering(data.RTOE(:,2));
+     S_L = filtering(data.LTOE(:,2));
+     S_R = filtering(data.RTOE(:,2));
 
 %     filtering
-     S_L = data.LTOE(:,2);
-     S_R = data.RTOE(:,2);
+%     S_L = data.LTOE(:,2);
+%     S_R = data.RTOE(:,2);
 
     % calculate the gradient
     Gl = gradient(S_L);
@@ -255,8 +251,6 @@ function parameters = calculated_parameters(data,S)
 
     %data.LTOE(:,2) = filtering(data.LTOE(:,2));
     %data.RTOE(:,2) = filtering(data.RTOE(:,2));
-
-
 
     %initiate the structure of parameters
     parameters = [];
@@ -362,6 +356,11 @@ function parameter = gate_parameters(data,gate,S)
     R_CI = emgLib.coactivation_index(R_ant,R_ag);
     
     parameter.mean_coactivation_index = (L_CI + R_CI)/2;
+
+    %LTA_filtered = emgLib.filter_emg(data.LTA(gate.offL:gate.offnext),0);
+    %[burst_duration,mean_amplitude_emg,integral_emg,rms_emg] = emgLib.emg_parameters(LTA_filtered,0);
+    %parameter.burst_duration = mean(burst_duration);
+
     
 end
 
@@ -411,7 +410,6 @@ function Global = get_global(data,parameters)
         LTA_filtered = emgLib.filter_emg(data.LTA,0);
         [burst_duration,Global.mean_amplitude_emg,Global.integral_emg,Global.rms_emg] = emgLib.emg_parameters(LTA_filtered,0);
         Global.mean_burst_duration = mean(burst_duration);
-    
 
     end
 
@@ -426,6 +424,10 @@ function parameters = gate_global_parameters(parameters,Global)
          parameters(i).var_step_height_right_mm = abs(Global.mean_step_height_right- parameters(i).step_height_right_mm);
          parameters(i).var_step_length_left_mm = abs(Global.mean_step_length_left- parameters(i).step_length_left_mm);
          parameters(i).var_step_length_right_mm = abs(Global.mean_step_length_right- parameters(i).step_length_right_mm);
+
+         %EMG ? 
+
+         %parameters(i).var_burst_duration = abs(Global.mean_burst_duration- parameters(i).burst_duration);
     end
 
 end
