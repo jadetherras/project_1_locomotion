@@ -1,4 +1,4 @@
-
+y
 %% gait parameters file - PCA
 
 % In this file, we calculate some gait parameters

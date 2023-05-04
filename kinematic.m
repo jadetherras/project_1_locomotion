@@ -14,6 +14,8 @@ close all;
 
 %dataset sain 
 %data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
+%data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
+
 
 % dataset SCI Human
 data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
@@ -25,14 +27,15 @@ data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 %test range
 
 %if you want all the data
-%N = length(data_healthy.data.LHIP(:,1));
+N = length(data_SCI.data.LHIP(:,1));
 
 %if you want just one gait
-start = 100; %this values come from the gate detection, we decided to plot one gait randomly
-stop = 1000;
+start = 1; %this values come from the gate detection, we decided to plot one gait randomly
+stop = N;
 
 T = 1/100;
 dec = 1000/3600*T*1000; %change here the velocity
+%dec = 0;
 
 %visualisation 2 limb
 double_dec = 1000;
@@ -48,7 +51,7 @@ plot_gate(data_SCI.data,start,stop,'B',1,dec,double_dec)
 
 %animate the data for comparison with visualisation
 
-%animate(data_healthy.data, start, stop,dec) 
+%animate(data_SCI.data, start, stop,dec) 
 %animate(data_SCI.data)
 
 %% function
@@ -161,73 +164,85 @@ function plot_gate(data,N1,N2,side,frame, dec, double_dec)
     title('kinematic reconstruction')
 
     Min = ceil(N1/frame);
-
     Max = ceil(N2/frame);
+
+    color_left = 'black';
+    color_right = 'green';
+    color_gateoff = 'red';
+    color_gatestrike = 'blue';
 
     Gate = cut_gate(data);
 
     V = 1;
-    while V < length(Gate)-1 && Gate(V).offL < Min
+    while V < length(Gate) && Gate(V).offL < Min
         V = V+1;
     end
 
     for Val = Min:Max
         
-        n = Val*frame;
         first = true;
+        n = Val*frame;
 
-        color_left = 'black';
-        color_right = 'green';
-        color_gateoff = 'red';
-        color_gatestrike = 'blue';
-
-
-        Lcolor = color_left;
-        Rcolor = color_right;
-        onevent = false;
-        
-        if onevent == false 
-            if n == Gate(V).offL
-                Lcolor = color_gateoff;
-                onevent = true;
-            elseif n == Gate(V).strikeL
-                Lcolor = color_gatestrike;
-                onevent = true;
-            elseif n == Gate(V).offR
-                Rcolor = color_gateoff;
-                onevent = true;
-            elseif n == Gate(V).strikeR
-                Rcolor = color_gatestrike;
-                onevent = true;
-                V = V+1;
-            end
-        else 
-            Lcolor = color_left;
-            Rcolor = color_right;
-            onevent = false;
+        if n >= Gate(V).offnext && V < length(Gate)
+            V = V+1;
         end
 
         if side == 'L' || side == 'B'
+            
+            if n == Gate(V).offL 
+                plot([data.LHIP(n,2)-dec*(n-Min*frame) data.LKNE(n,2)-dec*(n-Min*frame)],[data.LHIP(n,3)+double_dec data.LKNE(n,3)+double_dec],color_gateoff)
+            elseif n == Gate(V).strikeL
+                plot([data.LHIP(n,2)-dec*(n-Min*frame) data.LKNE(n,2)-dec*(n-Min*frame)],[data.LHIP(n,3)+double_dec data.LKNE(n,3)+double_dec],color_gatestrike)
+            else 
+                plot([data.LHIP(n,2)-dec*(n-Min*frame) data.LKNE(n,2)-dec*(n-Min*frame)],[data.LHIP(n,3)+double_dec data.LKNE(n,3)+double_dec],color_left)
+            end
 
-            plot([data.LHIP(n,2)-dec*(n-Min*frame) data.LKNE(n,2)-dec*(n-Min*frame)],[data.LHIP(n,3) data.LKNE(n,3)],Lcolor)
             if first
                 hold on
                 first = false;
             end
-            plot([data.LKNE(n,2)-dec*(n-Min*frame) data.LANK(n,2)-dec*(n-Min*frame)],[data.LKNE(n,3) data.LANK(n,3)],Lcolor)
-            plot([data.LANK(n,2)-dec*(n-Min*frame) data.LTOE(n,2)-dec*(n-Min*frame)],[data.LANK(n,3) data.LTOE(n,3)],Lcolor)
+
+            if n == Gate(V).offL 
+                plot([data.LKNE(n,2)-dec*(n-Min*frame) data.LANK(n,2)-dec*(n-Min*frame)],[data.LKNE(n,3)+double_dec data.LANK(n,3)+double_dec],color_gateoff)
+                plot([data.LANK(n,2)-dec*(n-Min*frame) data.LTOE(n,2)-dec*(n-Min*frame)],[data.LANK(n,3)+double_dec data.LTOE(n,3)+double_dec],color_gateoff)
+            elseif n == Gate(V).strikeL
+                plot([data.LKNE(n,2)-dec*(n-Min*frame) data.LANK(n,2)-dec*(n-Min*frame)],[data.LKNE(n,3)+double_dec data.LANK(n,3)+double_dec],color_gatestrike)
+                plot([data.LANK(n,2)-dec*(n-Min*frame) data.LTOE(n,2)-dec*(n-Min*frame)],[data.LANK(n,3)+double_dec data.LTOE(n,3)+double_dec],color_gatestrike)
+            else 
+                plot([data.LKNE(n,2)-dec*(n-Min*frame) data.LANK(n,2)-dec*(n-Min*frame)],[data.LKNE(n,3)+double_dec data.LANK(n,3)+double_dec],color_left)
+                plot([data.LANK(n,2)-dec*(n-Min*frame) data.LTOE(n,2)-dec*(n-Min*frame)],[data.LANK(n,3)+double_dec data.LTOE(n,3)+double_dec],color_left)
+            end
+            
         end
 
         if side == 'R' || side == 'B'
+            
+            if n == Gate(V).offR
+                plot([data.RHIP(n,2)-dec*(n-Min*frame) data.RKNE(n,2)-dec*(n-Min*frame)],[data.RHIP(n,3) data.RKNE(n,3)],color_gateoff)
+            elseif n == Gate(V).strikeR
+                plot([data.RHIP(n,2)-dec*(n-Min*frame) data.RKNE(n,2)-dec*(n-Min*frame)],[data.RHIP(n,3) data.RKNE(n,3)],color_gatestrike)
+            else 
+                plot([data.RHIP(n,2)-dec*(n-Min*frame) data.RKNE(n,2)-dec*(n-Min*frame)],[data.RHIP(n,3) data.RKNE(n,3)],color_right)
+            end
 
-            plot([data.RHIP(n,2)-dec*(n-Min*frame) data.RKNE(n,2)-dec*(n-Min*frame)],[data.RHIP(n,3)+double_dec data.RKNE(n,3)+double_dec],Rcolor)
             if first && side == 'R'
                 hold on
                 first = false;
             end
-            plot([data.RKNE(n,2)-dec*(n-Min*frame) data.RANK(n,2)-dec*(n-Min*frame)],[data.RKNE(n,3)+double_dec data.RANK(n,3)+double_dec],Rcolor)
-            plot([data.RANK(n,2)-dec*(n-Min*frame) data.RTOE(n,2)-dec*(n-Min*frame)],[data.RANK(n,3)+double_dec data.RTOE(n,3)+double_dec],Rcolor)
+
+            if n == Gate(V).offR 
+                plot([data.RKNE(n,2)-dec*(n-Min*frame) data.RANK(n,2)-dec*(n-Min*frame)],[data.RKNE(n,3) data.RANK(n,3)],color_gateoff)
+                plot([data.RANK(n,2)-dec*(n-Min*frame) data.RTOE(n,2)-dec*(n-Min*frame)],[data.RANK(n,3) data.RTOE(n,3)],color_gateoff)
+            elseif n == Gate(V).strikeR
+                plot([data.RKNE(n,2)-dec*(n-Min*frame) data.RANK(n,2)-dec*(n-Min*frame)],[data.RKNE(n,3) data.RANK(n,3)],color_gatestrike)
+                plot([data.RANK(n,2)-dec*(n-Min*frame) data.RTOE(n,2)-dec*(n-Min*frame)],[data.RANK(n,3) data.RTOE(n,3)],color_gatestrike)
+            else 
+                plot([data.RKNE(n,2)-dec*(n-Min*frame) data.RANK(n,2)-dec*(n-Min*frame)],[data.RKNE(n,3) data.RANK(n,3)],color_right)
+                plot([data.RANK(n,2)-dec*(n-Min*frame) data.RTOE(n,2)-dec*(n-Min*frame)],[data.RANK(n,3) data.RTOE(n,3)],color_right)
+            end
+
         end
+
 
     end
 
@@ -244,15 +259,16 @@ end
 function animate(data, start, stop,dec)
 
     %marker = ["LHIP","LKNE", "LANK","LTOE"];
-    T = 1/120;
+    T = 1/data.marker_sr*2;
 
-    % calculate timing left and right 
-    S_L = filtering(data.LTOE(:,2));
-    time_L = gate(S_L);
+    % calculate timing left and right
 
-    S_R = filtering(data.RTOE(:,2));
-    time_R = gate(S_R);
-
+    Gate = cut_gate(data);
+    
+    V = 1;
+    if start >= Gate(V).offnext && V < length(Gate)
+        V = V+1;
+    end
 
     %left plot
     hip = scatter(data.LHIP(start,2),data.LHIP(start,3),'o','MarkerFaceColor','red');
@@ -273,12 +289,13 @@ function animate(data, start, stop,dec)
     axis([-1000 1000 100 1200])
     xlabel('x'), ylabel('y')
     title('kinematic reconstruction')
-
+    
+    change = false;
     %update the markers and text at each time
     for n = (start+1):stop
-        move_L = text(1000,1000,"left : " + time_L(n));
-        move_R = text(1000,900,"right : " + time_R(n));
-
+        
+      
+        
         hip.XData = data.LHIP(n,2)-dec*(n-start);
         hip.YData = data.LHIP(n,3);
         knee.XData = data.LKNE(n,2)-dec*(n-start);
@@ -297,12 +314,55 @@ function animate(data, start, stop,dec)
         toe2.XData = data.RTOE(n,2)-dec*(n-start);
         toe2.YData = data.RTOE(n,3);
         
+         %normal color
+
+        if change 
+            hip.MarkerFaceColor = 'red';
+            knee.MarkerFaceColor = 'blue';
+            ankle.MarkerFaceColor = 'magenta';
+            toe.MarkerFaceColor = 'green';
+            hip2.CData = [1,0,0];
+            knee2.CData = [0,0,1];
+            ankle2.CData = [1,0,1];
+            toe2.CData = [0,1,0];
+            change = false;
+        end
+
+
+        if n == Gate(V).offL 
+            hip.MarkerFaceColor = 'red';
+            knee.MarkerFaceColor = 'red';
+            ankle.MarkerFaceColor = 'red';
+            toe.MarkerFaceColor = 'red';
+            change = true;
+        elseif n == Gate(V).offR 
+            hip2.CData = [1,0,0];
+            knee2.CData = [1,0,0];
+            ankle2.CData = [1,0,0];
+            toe2.CData = [1,0,0];
+            change = true;
+        elseif n == Gate(V).strikeL
+            hip.MarkerFaceColor = 'blue';
+            knee.MarkerFaceColor = 'blue';
+            ankle.MarkerFaceColor = 'blue';
+            toe.MarkerFaceColor = 'blue';
+            change = true;
+        elseif n == Gate(V).strikeR 
+            hip2.CData = [0,0,1];
+            knee2.CData = [0,0,1];
+            ankle2.CData = [0,0,1];
+            toe2.CData = [0,0,1];
+            change = true;
+            V = V+1;
+        end
+
         % give the time to see before change
         drawnow
-        pause(T)
-
-        delete(move_L)
-        delete(move_R)
+        if change
+            pause(1)
+        else
+            pause(T)
+        end
     end
 
 end
