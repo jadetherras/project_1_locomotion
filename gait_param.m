@@ -1,4 +1,4 @@
-y
+
 %% gait parameters file - PCA
 
 % In this file, we calculate some gait parameters
@@ -83,7 +83,7 @@ data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
 % calculate parameters
 
-%Gate = cut_gate(data_healthy_1_3kmh.data);
+% Gate = cut_gate(data_healthy_1_3kmh.data);
  
 %   n = size(data_healthy_1_2kmh.data.LTOE(:,2));
 %   t = 12166:12348;
@@ -130,11 +130,14 @@ parameters_SCI_1kmh_NoEES = calculated_parameters(data_SCI_1kmh_NoEES.data,1);
 NSCInoESS = size(parameters_SCI_1kmh_NoEES,2);
 
 NH = N1H + N2H + N3H;
-NSCI = N1SCI + N2SCI + NSCInoESS;
+NSCI = N1SCI + NSCInoESS + N2SCI;
 
 %merge
 parameters = [parameters_healthy_1_1kmh,parameters_healthy_2_1kmh,parameters_healthy_1_2kmh, parameters_healthy_2_2kmh,parameters_healthy_1_3kmh,parameters_healthy_2_3kmh,parameters_SCI_1kmh,parameters_SCI_2kmh,parameters_SCI_1kmh_NoEES];
 
+%1
+%parameters = [parameters_healthy_1_1kmh,parameters_healthy_2_1kmh,parameters_SCI_1kmh,parameters_SCI_1kmh_NoEES];
+ 
 
 %from structure to matrix for the PCA analysis
 PCA = [];
@@ -144,7 +147,11 @@ end
 
 PCA = normalize(transpose(PCA));
 
+matrix = cov(PCA);
+
 val_label = fieldnames(parameters(1));
+
+imagesc(matrix)
 %% PCA
 
 [coefs,score] = pca(PCA);
@@ -160,6 +167,10 @@ val_label = fieldnames(parameters(1));
 %VS differents conditions
 color = [transpose(zeros(N1H,1)+1), transpose(zeros(N2H,1)+2), transpose(zeros(N3H,1)+3), transpose(zeros(N1SCI,1)+4),transpose(zeros(N2SCI,1)+5),transpose(zeros(NSCInoESS,1)+6)];
 color = transpose(color);
+
+%1
+%color = [transpose(zeros(N1H,1)+1), transpose(zeros(N1SCI,1)+4),transpose(zeros(NSCInoESS,1)+6)];
+%color = transpose(color);
 
 pc1 = score(:,1);
 pc2 = score(:,2);
@@ -276,17 +287,24 @@ function parameter = gate_parameters(data,gate,S)
     T = 1/data.marker_sr;
     speed = S*1000/3.6;
 
+    %alone parameters
+
     parameter.gate_duration_sec = (gate.offnext-gate.offL)*T;
 
     parameter.swing_duration_left_sec = (gate.strikeL-gate.offL)*T;
     
     parameter.swing_duration_right_sec = (gate.strikeR-gate.offR)*T;
 
+    %parameter.swing_duration_symetry = abs(parameter.swing_duration_right_sec - parameter.swing_duration_left_sec);
+    parameter.swing_duration_symetry = 100*(parameter.swing_duration_right_sec - parameter.swing_duration_left_sec)/(0.5*(parameter.swing_duration_right_sec + parameter.swing_duration_left_sec));
+
     parameter.stance_percentage_left = (parameter.gate_duration_sec - parameter.swing_duration_left_sec)/parameter.gate_duration_sec;
 
     parameter.stance_percentage_right = (parameter.gate_duration_sec - parameter.swing_duration_right_sec)/parameter.gate_duration_sec;
-
+    
     parameter.double_stance_percentage = 100*max(0,(parameter.gate_duration_sec-(parameter.swing_duration_left_sec+parameter.swing_duration_right_sec))/parameter.gate_duration_sec);
+    
+    parameter.stance_percentage_total = parameter.stance_percentage_right + parameter.stance_percentage_left - parameter.double_stance_percentage;
     
     parameter.step_height_left_mm = max(data.LANK(gate.offL:gate.offnext,3))-min(data.LANK(gate.offL:gate.offnext,3));
     
@@ -296,6 +314,17 @@ function parameter = gate_parameters(data,gate,S)
     
     parameter.step_length_right_mm = (abs(data.RTOE(gate.strikeR,2)-(data.RTOE(gate.offR,2))) + parameter.swing_duration_right_sec*speed);
     
+    %parameter.step_height_symetry = abs(parameter.step_height_left_mm-parameter.step_height_right_mm);
+
+    parameter.step_height_symetry = 100*(parameter.step_height_left_mm-parameter.step_height_right_mm)/(0.5*(parameter.step_height_left_mm+parameter.step_height_right_mm));
+
+    %parameter.step_length_symetry = abs(parameter.step_length_left_mm-parameter.step_length_right_mm);
+    parameter.step_length_symetry = 100*(parameter.step_length_left_mm-parameter.step_length_right_mm)/(0.5*(parameter.step_length_left_mm+parameter.step_length_right_mm));
+
+
+    parameter.stridewidth_mm = mean(data.LANK(gate.offL:gate.offnext,1) - data.RANK(gate.offL:gate.offnext,1));
+
+
     x1L = data.LKNE(gate.offL:gate.offnext,2);
     x3L = data.LHIP(gate.offL:gate.offnext,2);
     x2L = data.LANK(gate.offL:gate.offnext,2);
@@ -334,6 +363,7 @@ function parameter = gate_parameters(data,gate,S)
     parameter.var_ver_hip_left_mm = mean(abs(mean_y3L-y3L));
     parameter.var_ver_hip_right_mm = mean(abs(mean_y3R-y3R));
 
+    %joint angle
     parameter.max_joint_angle_left_deg = max(angle_radL);
     parameter.min_joint_angle_left_deg = min(angle_radL);
     parameter.max_angle_vel_left_deg = max(abs(vel_angleL));
@@ -357,10 +387,6 @@ function parameter = gate_parameters(data,gate,S)
     
     parameter.mean_coactivation_index = (L_CI + R_CI)/2;
 
-    %LTA_filtered = emgLib.filter_emg(data.LTA(gate.offL:gate.offnext),0);
-    %[burst_duration,mean_amplitude_emg,integral_emg,rms_emg] = emgLib.emg_parameters(LTA_filtered,0);
-    %parameter.burst_duration = mean(burst_duration);
-
     
 end
 
@@ -379,6 +405,8 @@ function Global = get_global(data,parameters)
     mean_step_length_left = 0;
     mean_step_length_right = 0;
 
+    mean_stridewidth = 0;
+
 
     if (not(isempty(parameters)))
         for i = 1:(length(parameters))
@@ -394,6 +422,9 @@ function Global = get_global(data,parameters)
             mean_step_length_left = mean_step_length_left + parameters(i).step_length_left_mm;
             mean_step_length_right = mean_step_length_right + parameters(i).step_length_right_mm;
 
+            mean_stridewidth = mean_stridewidth + parameters(i).stridewidth_mm;
+
+
         end
 
         Global.mean_gate_duration = mean_gate_duration/length(parameters);
@@ -405,6 +436,8 @@ function Global = get_global(data,parameters)
 
         Global.mean_step_length_left = mean_step_length_left/length(parameters);
         Global.mean_step_length_right = mean_step_length_right/length(parameters);
+
+        Global.mean_stridewidth = mean_stridewidth/length(parameters);
 
         %EMG
         LTA_filtered = emgLib.filter_emg(data.LTA,0);
@@ -424,10 +457,8 @@ function parameters = gate_global_parameters(parameters,Global)
          parameters(i).var_step_height_right_mm = abs(Global.mean_step_height_right- parameters(i).step_height_right_mm);
          parameters(i).var_step_length_left_mm = abs(Global.mean_step_length_left- parameters(i).step_length_left_mm);
          parameters(i).var_step_length_right_mm = abs(Global.mean_step_length_right- parameters(i).step_length_right_mm);
+         parameters(i).var_stridewidth = abs(Global.mean_stridewidth- parameters(i).stridewidth_mm);
 
-         %EMG ? 
-
-         %parameters(i).var_burst_duration = abs(Global.mean_burst_duration- parameters(i).burst_duration);
     end
 
 end
