@@ -161,12 +161,12 @@ imagesc(matrix)
 % color = transpose(color);
 
 %healthy vs SCI vs stimulation
-color = [transpose(zeros(NH,1)+1), transpose(zeros(N1SCI + N2SCI,1)+2), transpose(zeros(NSCInoESS,1)+3)];
-color = transpose(color);
+%color = [transpose(zeros(NH,1)+1), transpose(zeros(N1SCI + N2SCI,1)+2), transpose(zeros(NSCInoESS,1)+3)];
+%color = transpose(color);
 
 %VS differents conditions
-% color = [transpose(zeros(N1H,1)+1), transpose(zeros(N2H,1)+2), transpose(zeros(N3H,1)+3), transpose(zeros(N1SCI,1)+4),transpose(zeros(N2SCI,1)+5),transpose(zeros(NSCInoESS,1)+6)];
-% color = transpose(color);
+color = [transpose(zeros(N1H,1)+1), transpose(zeros(N2H,1)+2), transpose(zeros(N3H,1)+3), transpose(zeros(N1SCI,1)+4),transpose(zeros(N2SCI,1)+5),transpose(zeros(NSCInoESS,1)+6)];
+color = transpose(color);
 
 %1
 %color = [transpose(zeros(N1H,1)+1), transpose(zeros(N1SCI,1)+4),transpose(zeros(NSCInoESS,1)+6)];
@@ -387,6 +387,7 @@ function parameter = gate_parameters(data,gate,S)
     R_CI = emgLib.coactivation_index(R_ant,R_ag);
     
     parameter.mean_coactivation_index = (L_CI + R_CI)/2;
+
     
     LTA_filtered = emgLib.filter_emg(data.LTA(t_idx_emg),data.EMG_sr,0);
     [parameter.mean_amplitude_emg,parameter.integral_emg,parameter.rms_emg] = emgLib.emg_parameters(LTA_filtered,data.EMG_sr);
@@ -430,6 +431,7 @@ function Global = get_global(parameters)
             mean_step_length_right = mean_step_length_right + parameters(i).step_length_right_mm;
 
             mean_stridewidth = mean_stridewidth + parameters(i).stridewidth_mm;
+
             
             % EMG
             mean_coactivation_index = mean_coactivation_index + parameters(i).mean_coactivation_index;
@@ -454,6 +456,9 @@ function Global = get_global(parameters)
         %EMG
         Global.mean_coactivation_index = mean_coactivation_index/length(parameters);
         Global.mean_amplitude_emg      = mean_amplitude_emg/length(parameters);
+        % LTA_filtered = emgLib.filter_emg(data.LTA,0);
+        % [burst_duration,Global.mean_amplitude_emg,Global.integral_emg,Global.rms_emg] = emgLib.emg_parameters(LTA_filtered,0);
+        % Global.mean_burst_duration = mean(burst_duration);
 
     end
 
@@ -469,9 +474,11 @@ function parameters = gate_global_parameters(parameters,Global)
          parameters(i).var_step_length_left_mm = abs(Global.mean_step_length_left- parameters(i).step_length_left_mm);
          parameters(i).var_step_length_right_mm = abs(Global.mean_step_length_right- parameters(i).step_length_right_mm);
          parameters(i).var_stridewidth = abs(Global.mean_stridewidth- parameters(i).stridewidth_mm);
+
          
          %EMG 
          parameters(i).var_coactivation_index = abs(Global.mean_coactivation_index-parameters(i).mean_coactivation_index);
          parameters(i).var_amplitude_emg = abs(Global.mean_amplitude_emg-parameters(i).mean_amplitude_emg);
+
     end
 end
