@@ -1,34 +1,30 @@
 classdef emgLib
     methods(Static)
-        function smoothed_envelope = filter_emg(emg_signal,plot_signals)
+        function smooth_envelope = filter_emg(emg_signal,fs,plot_signals)
             % INPUTS: 
             %
             %   emg_signal: signal to be filtered
             %   plot_signal: 1 to plot the signals, 0 not to plot
-            
-            % Set up filter parameters
-            cutoff_freq = 50; % Hz
-            sampling_freq = 6000; % Hz
-            order = 4;
-            
-            % Design and apply the lowpass filter
-            [b, a] = butter(order, cutoff_freq/(sampling_freq/2), 'low');
-            filtered_signal = filtfilt(b, a, emg_signal);
-            
-            % Rectify the filtered signal
-            rectified_signal = abs(filtered_signal);
-            
-            % Compute the envelope using the Hilbert transform
-            [u_envelope, ~] = envelope(rectified_signal,500,'peak');
+            %   fs: sampling frequency
+                              
+            % Rectify signal
+            abs_signal = abs(emg_signal);
+
+            % Compute the envelope
+            [u_envelope, ~] = envelope(abs_signal,500,'peak');
+
+            % Apply lowpass filter on the envelope
+            cutoff_freq = 200;
+            lp_signal = lowpass(u_envelope,cutoff_freq,fs);
             
             % Smooth the envelope using a moving average filter
-            window_size = 1500; % adjust as needed
-            smoothed_envelope = movmean(u_envelope, window_size);
+            window_size = fs/2; % Half a second
+            smooth_envelope = movmean(lp_signal, window_size);
             
             % Plot the original signal and the smoothed envelope
             if (plot_signals == 1)
-                t = (0:length(emg_signal)-1)/sampling_freq;
-                plot(t,emg_signal,t,smoothed_envelope);
+                t = (0:length(emg_signal)-1)/fs;
+                plot(t,emg_signal,t,smooth_envelope);
                 legend('Original Signal','Smoothed Envelope');
                 xlabel('Time (s)');
                 ylabel('Amplitude');
@@ -36,19 +32,26 @@ classdef emgLib
 
         end
 
-        function [burst_duration,mean_amplitude,integral,rms] = emg_parameters(emg_signal,plot)
-            
-            sampling_freq = 6000;
+        function [mean_amplitude,integral,rms] = emg_parameters(emg_signal,fs)
+
+            % Compute mean amplitude, integral of muscle activity, and RMS of muscle activity
+            mean_amplitude = mean(emg_signal);
+            integral = trapz(emg_signal) / fs;
+            rms = sqrt(mean(emg_signal.^2));
+
+        end
+
+        function burst_duration = calculate_burst_duration(emg_signal,fs,wanttoplot)
 
             threshold_on = 0.3 * max(emg_signal);
             threshold_off = 0.1 * max(emg_signal);
             
             % Detect onset and offset of muscle activity
             [onset, offset] = emgLib.detect_bursts(emg_signal, threshold_on, threshold_off);
-            
+
             % Plot the EMG signal, envelope, and detected onset/offset events
-            if (plot == 1)
-                t = (0:length(emg_signal)-1) / sampling_freq;
+            if (wanttoplot == 1)
+                t = (0:length(emg_signal)-1)' ./ fs;
                 plot(t, emg_signal);
                 hold on;
                 plot(t, emg_signal, 'r');
@@ -58,13 +61,9 @@ classdef emgLib
                 ylabel('Amplitude');
                 legend('EMG', 'Envelope', 'Onset', 'Offset');
             end
-            
-            % Compute burst duration, mean amplitude, integral of muscle activity, and RMS of muscle activity
-            burst_duration = (offset - onset) / sampling_freq;
-            mean_amplitude = mean(emg_signal(onset:offset));
-            integral = trapz(emg_signal(onset:offset)) / sampling_freq;
-            rms = sqrt(mean(emg_signal(onset:offset).^2));
+            burst_duration = (offset - onset) / fs;
 
+                
         end
 
         function CI = coactivation_index(antagonist_emg,agonist_emg)

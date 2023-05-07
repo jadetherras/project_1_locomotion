@@ -272,7 +272,7 @@ function parameters = calculated_parameters(data,S)
     end
 
     %get the global values (for exemple the mean of the swing duration)
-    Global = get_global(data,parameters);
+    Global = get_global(parameters);
    
     %get the global values dependent parameters (for exemple the
     %variability)
@@ -376,11 +376,12 @@ function parameter = gate_parameters(data,gate,S)
 
     % EMG
 
-    L_ag  = data.LMG(gate.offL:gate.offnext);
-    L_ant = data.LTA(gate.offL:gate.offnext);
+    t_idx_emg = ((gate.offL-1)*(data.EMG_sr/data.marker_sr)+1:gate.offnext*data.EMG_sr/data.marker_sr);
+    L_ag  = data.LMG(t_idx_emg);
+    L_ant = data.LTA(t_idx_emg);
 
-    R_ag  = data.RMG(gate.offL:gate.offnext);
-    R_ant = data.RTA(gate.offL:gate.offnext);
+    R_ag  = data.RMG(t_idx_emg);
+    R_ant = data.RTA(t_idx_emg);
     
     L_CI = emgLib.coactivation_index(L_ant,L_ag);
     R_CI = emgLib.coactivation_index(R_ant,R_ag);
@@ -388,9 +389,13 @@ function parameter = gate_parameters(data,gate,S)
     parameter.mean_coactivation_index = (L_CI + R_CI)/2;
 
     
+    LTA_filtered = emgLib.filter_emg(data.LTA(t_idx_emg),data.EMG_sr,0);
+    [parameter.mean_amplitude_emg,parameter.integral_emg,parameter.rms_emg] = emgLib.emg_parameters(LTA_filtered,data.EMG_sr);
+
+    
 end
 
-function Global = get_global(data,parameters)
+function Global = get_global(parameters)
 
     Global = [];
 
@@ -406,6 +411,9 @@ function Global = get_global(data,parameters)
     mean_step_length_right = 0;
 
     mean_stridewidth = 0;
+
+    mean_coactivation_index = 0;
+    mean_amplitude_emg      = 0;
 
 
     if (not(isempty(parameters)))
@@ -424,6 +432,12 @@ function Global = get_global(data,parameters)
 
             mean_stridewidth = mean_stridewidth + parameters(i).stridewidth_mm;
 
+            
+            % EMG
+            mean_coactivation_index = mean_coactivation_index + parameters(i).mean_coactivation_index;
+            mean_amplitude_emg      = mean_amplitude_emg + parameters(i).mean_amplitude_emg;
+            
+
 
         end
 
@@ -440,9 +454,11 @@ function Global = get_global(data,parameters)
         Global.mean_stridewidth = mean_stridewidth/length(parameters);
 
         %EMG
-        LTA_filtered = emgLib.filter_emg(data.LTA,0);
-        [burst_duration,Global.mean_amplitude_emg,Global.integral_emg,Global.rms_emg] = emgLib.emg_parameters(LTA_filtered,0);
-        Global.mean_burst_duration = mean(burst_duration);
+        Global.mean_coactivation_index = mean_coactivation_index/length(parameters);
+        Global.mean_amplitude_emg      = mean_amplitude_emg/length(parameters);
+        % LTA_filtered = emgLib.filter_emg(data.LTA,0);
+        % [burst_duration,Global.mean_amplitude_emg,Global.integral_emg,Global.rms_emg] = emgLib.emg_parameters(LTA_filtered,0);
+        % Global.mean_burst_duration = mean(burst_duration);
 
     end
 
@@ -459,6 +475,10 @@ function parameters = gate_global_parameters(parameters,Global)
          parameters(i).var_step_length_right_mm = abs(Global.mean_step_length_right- parameters(i).step_length_right_mm);
          parameters(i).var_stridewidth = abs(Global.mean_stridewidth- parameters(i).stridewidth_mm);
 
-    end
+         
+         %EMG 
+         parameters(i).var_coactivation_index = abs(Global.mean_coactivation_index-parameters(i).mean_coactivation_index);
+         parameters(i).var_amplitude_emg = abs(Global.mean_amplitude_emg-parameters(i).mean_amplitude_emg);
 
+    end
 end
