@@ -151,7 +151,16 @@ matrix = cov(PCA);
 
 val_label = fieldnames(parameters(1));
 
+figure
+
 imagesc(matrix)
+xticks = linspace(1, size(val_label,1),size(val_label,1));
+set(gca, 'XTick', xticks, 'XTickLabel',transpose(val_label))
+
+yticks = linspace(1, size(val_label,1),size(val_label,1));
+set(gca, 'YTick', yticks, 'YTickLabel',transpose(val_label))
+colorbar
+
 %% PCA
 
 [coefs,score] = pca(PCA);
@@ -174,9 +183,17 @@ color = transpose(color);
 
 pc1 = score(:,1);
 pc2 = score(:,2);
+pc3 = score(:,3);
 
 figure
 gscatter(pc1,pc2,color);
+
+figure
+scatter3(pc1,pc2,pc3, 1, color);
+title('PCA')
+xlabel('pc1')
+ylabel('pc2')
+zlabel('pc3')
 
 figure
 biplot(coefs(:,1:3),'VarLabels',val_label);
@@ -291,7 +308,7 @@ function parameter = gate_parameters(data,gate,S)
 
     parameter.gate_duration_sec = (gate.offnext-gate.offL)*T;
 
-    parameter.swing_duration_left_sec = (gate.strikeL-gate.offL)*T;
+    parameter.swing_duration_left = (gate.strikeL-gate.offL)*T;
     
     parameter.swing_duration_right_sec = (gate.strikeR-gate.offR)*T;
 
@@ -314,7 +331,7 @@ function parameter = gate_parameters(data,gate,S)
     
     parameter.step_length_right_mm = (abs(data.RTOE(gate.strikeR,2)-(data.RTOE(gate.offR,2))) + parameter.swing_duration_right_sec*speed);
     
-    %parameter.step_height_symetry = abs(parameter.step_height_left_mm-parameter.step_height_right_mm);
+    parameter.step_height_symetry = abs(parameter.step_height_left_mm-parameter.step_height_right_mm);
 
     parameter.step_height_symetry = 100*(parameter.step_height_left_mm-parameter.step_height_right_mm)/(0.5*(parameter.step_height_left_mm+parameter.step_height_right_mm));
 
