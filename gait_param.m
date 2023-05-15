@@ -277,9 +277,6 @@ function parameters = calculated_parameters(data,S)
     %cut the data in gate
     Gate = cut_gate(data);
 
-    %data.LTOE(:,2) = filtering(data.LTOE(:,2));
-    %data.RTOE(:,2) = filtering(data.RTOE(:,2));
-
     %initiate the structure of parameters
     parameters = [];
 
@@ -295,6 +292,9 @@ function parameters = calculated_parameters(data,S)
     %variability)
     parameters = gate_global_parameters(parameters,Global);
 
+    %removal 
+
+    parameters = remove_param(parameters);
 end
 
 function parameter = gate_parameters(data,gate,S)
@@ -308,7 +308,7 @@ function parameter = gate_parameters(data,gate,S)
 
     parameter.gate_duration_sec = (gate.offnext-gate.offL)*T;
 
-    parameter.swing_duration_left = (gate.strikeL-gate.offL)*T;
+    parameter.swing_duration_left_sec = (gate.strikeL-gate.offL)*T;
     
     parameter.swing_duration_right_sec = (gate.strikeR-gate.offR)*T;
 
@@ -498,4 +498,14 @@ function parameters = gate_global_parameters(parameters,Global)
          parameters(i).var_amplitude_emg = abs(Global.mean_amplitude_emg-parameters(i).mean_amplitude_emg);
 
     end
+end
+
+function parameters =  remove_param(parameters)
+    %first = true;
+    %if (first)
+        %x = input(fieldnames(parameters));
+        %x = input("config");
+    %end
+    parameters = rmfield(parameters,"gate_duration_sec");
+    
 end
