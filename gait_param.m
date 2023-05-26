@@ -19,6 +19,9 @@ data_healthy_2_1kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310
 data_healthy_1_3kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML01_3kmh.mat");
 data_healthy_2_3kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
 
+data_healthy_1_3kmh_inclined=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/2_AML01_3kmh_inclined.mat");
+data_healthy_2_3kmh_inclined=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/2_AML02_3kmh_inclined.mat");
+
 % dataset SCI Human
 data_SCI_1kmh=load("SCI Human/DM002_TDM_08_1kmh.mat");
 data_SCI_2kmh=load("SCI Human/DM002_TDM_08_2kmh.mat");
@@ -83,7 +86,7 @@ data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
 % calculate parameters
 
-% Gate = cut_gate(data_healthy_1_3kmh.data);
+ %Gate = cut_gate(data_healthy_1_3kmh_inclined.data);
  
 %   n = size(data_healthy_1_2kmh.data.LTOE(:,2));
 %   t = 12166:12348;
@@ -120,6 +123,11 @@ parameters_healthy_2_3kmh = calculated_parameters(data_healthy_2_3kmh.data,3);
 
 N3H = size(parameters_healthy_1_3kmh,2) + size(parameters_healthy_2_3kmh,2);
 
+parameters_healthy_1_3kmh_inclined = calculated_parameters(data_healthy_1_3kmh_inclined.data,3);
+parameters_healthy_2_3kmh_inclined = calculated_parameters(data_healthy_2_3kmh_inclined.data,3);
+
+N3HInclin = size(parameters_healthy_1_3kmh_inclined,2) + size(parameters_healthy_2_3kmh_inclined,2);
+
 parameters_SCI_1kmh = calculated_parameters(data_SCI_1kmh.data,1);
 parameters_SCI_2kmh = calculated_parameters(data_SCI_2kmh.data,2);
 
@@ -129,28 +137,47 @@ N2SCI = size(parameters_SCI_2kmh,2);
 parameters_SCI_1kmh_NoEES = calculated_parameters(data_SCI_1kmh_NoEES.data,1);
 NSCInoESS = size(parameters_SCI_1kmh_NoEES,2);
 
-NH = N1H + N2H + N3H;
+NH = N1H + N2H + N3H + N3HInclin;
 NSCI = N1SCI + NSCInoESS + N2SCI;
 
 %merge
-parameters = [parameters_healthy_1_1kmh,parameters_healthy_2_1kmh,parameters_healthy_1_2kmh, parameters_healthy_2_2kmh,parameters_healthy_1_3kmh,parameters_healthy_2_3kmh,parameters_SCI_1kmh,parameters_SCI_2kmh,parameters_SCI_1kmh_NoEES];
+parameters = [parameters_healthy_1_1kmh,parameters_healthy_2_1kmh,parameters_healthy_1_2kmh, parameters_healthy_2_2kmh,parameters_healthy_1_3kmh,parameters_healthy_2_3kmh,parameters_healthy_1_3kmh_inclined,parameters_healthy_2_3kmh_inclined,parameters_SCI_1kmh,parameters_SCI_2kmh,parameters_SCI_1kmh_NoEES];
 
 %1
 %parameters = [parameters_healthy_1_1kmh,parameters_healthy_2_1kmh,parameters_SCI_1kmh,parameters_SCI_1kmh_NoEES];
  
+%% processing for PCA and plot
 
 %from structure to matrix for the PCA analysis
-PCA = [];
+prePCA = [];
 for i = 1:(length(parameters))
-    PCA = [PCA,cell2mat(struct2cell(parameters(i)))];
+    prePCA = [prePCA,cell2mat(struct2cell(parameters(i)))];
 end
-
-PCA = normalize(transpose(PCA));
-%PCA = transpose(PCA);
-
-matrix = cov(PCA);
+prePCA = transpose(prePCA);
 
 val_label = fieldnames(parameters(1));
+
+PCA = normalize(prePCA);
+
+%healthy vs SCI
+% color = [transpose(zeros(NH,1)+1), transpose(zeros(NSCI,1)+2)];
+% color = transpose(color);
+
+%healthy vs SCI vs stimulation
+%color = [transpose(zeros(NH,1)+1), transpose(zeros(N1SCI + N2SCI,1)+2), transpose(zeros(NSCInoESS,1)+3)];
+%color = transpose(color);
+
+%VS differents conditions
+color = [transpose(zeros(N1H,1)+1), transpose(zeros(N2H,1)+2), transpose(zeros(N3H,1)+3),transpose(zeros(N3HInclin,1)+4), transpose(zeros(N1SCI,1)+5),transpose(zeros(N2SCI,1)+6),transpose(zeros(NSCInoESS,1)+7)];
+color = transpose(color);
+%1
+%color = [transpose(zeros(N1H,1)+1), transpose(zeros(N1SCI,1)+4),transpose(zeros(NSCInoESS,1)+6)];
+%color = transpose(color);
+
+
+%% corellation matrix
+
+matrix = cov(PCA);
 
 figure
 
@@ -162,6 +189,15 @@ yticks = linspace(1, size(val_label,1),size(val_label,1));
 set(gca, 'YTick', yticks, 'YTickLabel',transpose(val_label))
 colorbar
 
+%% histogram parameters gate duration
+
+figure
+
+hist(prePCA(:,1),length(prePCA(:,1)))
+%hist(prePCA(:,1),100)
+title('histogram of gate duration')
+xlabel('duration')
+ylabel('number')
 %% PCA
 
 [coefs,score, ~, ~, explained] = pca(PCA);
@@ -176,29 +212,18 @@ h.YAxis(2).Limits = [0 100];
 h.YAxis(2).Color = h.YAxis(1).Color;
 h.YAxis(2).TickLabel = strcat(h.YAxis(2).TickLabel, '%');
 
-
-%healthy vs SCI
-% color = [transpose(zeros(NH,1)+1), transpose(zeros(NSCI,1)+2)];
-% color = transpose(color);
-
-%healthy vs SCI vs stimulation
-%color = [transpose(zeros(NH,1)+1), transpose(zeros(N1SCI + N2SCI,1)+2), transpose(zeros(NSCInoESS,1)+3)];
-%color = transpose(color);
-
-%VS differents conditions
-color = [transpose(zeros(N1H,1)+1), transpose(zeros(N2H,1)+2), transpose(zeros(N3H,1)+3), transpose(zeros(N1SCI,1)+4),transpose(zeros(N2SCI,1)+5),transpose(zeros(NSCInoESS,1)+6)];
-color = transpose(color);
-
-%1
-%color = [transpose(zeros(N1H,1)+1), transpose(zeros(N1SCI,1)+4),transpose(zeros(NSCInoESS,1)+6)];
-%color = transpose(color);
-
 pc1 = score(:,1);
 pc2 = score(:,2);
 pc3 = score(:,3);
 
 figure
 gscatter(pc1,pc2,color);
+
+figure
+gscatter(pc1,pc3,color);
+
+figure
+gscatter(pc2,pc3,color);
 
 figure
 scatter3(pc1,pc2,pc3, 1, color);
@@ -229,8 +254,11 @@ end
 % cut_gate : cut the date in gate cycle (using a gradient)
 % each value represent a foot strike
 % data is the dataset
-% gate is a array of position 
-function Gate = cut_gate(data) 
+% constrain : do we get rid of the gate that are aberentely long ? (ie. not
+% well detected)
+% Gate is a structure, each gate is represented but it events
+function Gate = cut_gate(data,constraint) 
+    T = 1/data.marker_sr;
 
     %filtering
      S_L = filtering(data.LTOE(:,2));
@@ -258,7 +286,11 @@ function Gate = cut_gate(data)
             
             if isfield(gate,'strikeR')
                 gate.offnext = i;
-                Gate = [Gate,gate];
+                if not(constraint) || (constraint && (gate.offnext - gate.offL)*T <=4)
+                    Gate = [Gate,gate];
+                elseif constraint && gate.offnext - gate.offL >4 
+                    disp(['remove a gate with duration',num2str(gate.offnext - gate.offL),'in position',num2str(gate.offL)])
+                end
             end
 
             on_gate = true;
@@ -288,7 +320,7 @@ function parameters = calculated_parameters(data,S)
 
     display("start data")
     %cut the data in gate
-    Gate = cut_gate(data);
+    Gate = cut_gate(data,true);
 
     %initiate the structure of parameters
     parameters = [];
@@ -410,10 +442,10 @@ function parameter = gate_parameters(data,gate,S)
     % EMG
 
     t_idx_emg = ((gate.offL-1)*(data.EMG_sr/data.marker_sr)+1:gate.offnext*data.EMG_sr/data.marker_sr);
-    L_ag  = data.LMG(t_idx_emg);
+    L_ag  = data.LSol(t_idx_emg);
     L_ant = data.LTA(t_idx_emg);
 
-    R_ag  = data.RMG(t_idx_emg);
+    R_ag  = data.RSol(t_idx_emg);
     R_ant = data.RTA(t_idx_emg);
     
     L_CI = emgLib.coactivation_index(L_ant,L_ag);
@@ -423,25 +455,39 @@ function parameter = gate_parameters(data,gate,S)
 
     
     EMG_filtered = emgLib.filter_emg(data.LSol(t_idx_emg),data.EMG_sr,0);
-    [parameter.amplitude_emg_LSol,parameter.integral_emg_LSol,parameter.rms_emg_LSol] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+    %[parameter.amplitude_emg_LSol,parameter.integral_emg_LSol,parameter.rms_emg_LSol] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+    [parameter.amplitude_emg_LSol,~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
-    EMG_filtered = emgLib.filter_emg(data.LMG(t_idx_emg),data.EMG_sr,0);
-    [parameter.amplitude_emg_LMG,parameter.integral_emg_LMG,parameter.rms_emg_LMG] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
     EMG_filtered = emgLib.filter_emg(data.LTA(t_idx_emg),data.EMG_sr,0);
-    [parameter.amplitude_emg_LTA,parameter.integral_emg_LTA,parameter.rms_emg_LTA] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+    %[parameter.amplitude_emg_LTA,parameter.integral_emg_LTA,parameter.rms_emg_LTA] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+    [parameter.amplitude_emg_LTA,~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
-    EMG_filtered = emgLib.filter_emg(data.LST(t_idx_emg),data.EMG_sr,0);
-    [parameter.amplitude_emg_LST,parameter.integral_emg_LST,parameter.rms_emg_LST] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
-    %EMG_filtered = emgLib.filter_emg(data.LVLat(t_idx_emg),data.EMG_sr,0);
-    %[parameter.amplitude_emg_LVLat,parameter.integral_emg_LVLat,parameter.rms_emg_LVLat] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+    EMG_filtered = emgLib.filter_emg(data.RSol(t_idx_emg),data.EMG_sr,0);
+    %[parameter.amplitude_emg_RSol,parameter.integral_emg_RSol,parameter.rms_emg_RSol] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+    [parameter.amplitude_emg_RSol,~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
-    EMG_filtered = emgLib.filter_emg(data.LRF(t_idx_emg),data.EMG_sr,0);
-    [parameter.amplitude_emg_LRF,parameter.integral_emg_LRF,parameter.rms_emg_LRF] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+    EMG_filtered = emgLib.filter_emg(data.RTA(t_idx_emg),data.EMG_sr,0);
+    %[parameter.amplitude_emg_RTA,parameter.integral_emg_RTA,parameter.rms_emg_RTA] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+    [parameter.amplitude_emg_RTA,~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
-    %EMG_filtered = emgLib.filter_emg(data.LIl(t_idx_emg),data.EMG_sr,0);
-    %[parameter.amplitude_emg_LIl,parameter.integral_emg_LIl,parameter.rms_emg_LIl] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+
+%     EMG_filtered = emgLib.filter_emg(data.LMG(t_idx_emg),data.EMG_sr,0);
+%     [parameter.amplitude_emg_LMG,parameter.integral_emg_LMG,parameter.rms_emg_LMG] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+% 
+%     
+%     EMG_filtered = emgLib.filter_emg(data.LST(t_idx_emg),data.EMG_sr,0);
+%     [parameter.amplitude_emg_LST,parameter.integral_emg_LST,parameter.rms_emg_LST] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+% 
+%     %EMG_filtered = emgLib.filter_emg(data.LVLat(t_idx_emg),data.EMG_sr,0);
+%     %[parameter.amplitude_emg_LVLat,parameter.integral_emg_LVLat,parameter.rms_emg_LVLat] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+% 
+%     EMG_filtered = emgLib.filter_emg(data.LRF(t_idx_emg),data.EMG_sr,0);
+%     [parameter.amplitude_emg_LRF,parameter.integral_emg_LRF,parameter.rms_emg_LRF] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+% 
+%     %EMG_filtered = emgLib.filter_emg(data.LIl(t_idx_emg),data.EMG_sr,0);
+%     %[parameter.amplitude_emg_LIl,parameter.integral_emg_LIl,parameter.rms_emg_LIl] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
     
 end
@@ -465,12 +511,15 @@ function Global = get_global(parameters)
 
     mean_coactivation_index = 0;
     mean_amplitude_emg_LSol      = 0;
-    mean_amplitude_emg_LMG      = 0;
     mean_amplitude_emg_LTA      = 0;
-    mean_amplitude_emg_LST      = 0;
-    %mean_amplitude_emg_LVLat      = 0;
-    mean_amplitude_emg_LRF      = 0;
-    %mean_amplitude_emg_LIl     = 0;
+    mean_amplitude_emg_RSol      = 0;
+    mean_amplitude_emg_RTA      = 0;
+
+%     mean_amplitude_emg_LMG      = 0;
+%     mean_amplitude_emg_LST      = 0;
+%     %mean_amplitude_emg_LVLat      = 0;
+%     mean_amplitude_emg_LRF      = 0;
+%     %mean_amplitude_emg_LIl     = 0;
 
 
 
@@ -496,12 +545,17 @@ function Global = get_global(parameters)
             mean_coactivation_index = mean_coactivation_index + parameters(i).coactivation_index;
             
             mean_amplitude_emg_LSol = mean_amplitude_emg_LSol + parameters(i).amplitude_emg_LSol;
-            mean_amplitude_emg_LMG = mean_amplitude_emg_LMG + parameters(i).amplitude_emg_LMG;
             mean_amplitude_emg_LTA = mean_amplitude_emg_LTA + parameters(i).amplitude_emg_LTA;
-            mean_amplitude_emg_LST = mean_amplitude_emg_LST + parameters(i).amplitude_emg_LST;
-            %mean_amplitude_emg_LVLat = mean_amplitude_emg_LVLat + parameters(i).amplitude_emg_LVLat;
-            mean_amplitude_emg_LRF = mean_amplitude_emg_LRF + parameters(i).amplitude_emg_LRF;
-            %mean_amplitude_emg_LIl = mean_amplitude_emg_LIl + parameters(i).amplitude_emg_LIl;
+            mean_amplitude_emg_RSol = mean_amplitude_emg_RSol + parameters(i).amplitude_emg_RSol;
+            mean_amplitude_emg_RTA = mean_amplitude_emg_RTA + parameters(i).amplitude_emg_RTA;
+            
+            
+
+%             mean_amplitude_emg_LMG = mean_amplitude_emg_LMG + parameters(i).amplitude_emg_LMG;
+%             mean_amplitude_emg_LST = mean_amplitude_emg_LST + parameters(i).amplitude_emg_LST;
+%             %mean_amplitude_emg_LVLat = mean_amplitude_emg_LVLat + parameters(i).amplitude_emg_LVLat;
+%             mean_amplitude_emg_LRF = mean_amplitude_emg_LRF + parameters(i).amplitude_emg_LRF;
+%             %mean_amplitude_emg_LIl = mean_amplitude_emg_LIl + parameters(i).amplitude_emg_LIl;
             
             
             
@@ -524,15 +578,20 @@ function Global = get_global(parameters)
         %EMG
         Global.mean_coactivation_index = mean_coactivation_index/length(parameters);
         Global.mean_amplitude_emg_LSol      = mean_amplitude_emg_LSol/length(parameters);
-        Global.mean_amplitude_emg_LMG      = mean_amplitude_emg_LMG/length(parameters);
         Global.mean_amplitude_emg_LTA      = mean_amplitude_emg_LTA/length(parameters);
-        Global.mean_amplitude_emg_LST      = mean_amplitude_emg_LST/length(parameters);
-        %Global.mean_amplitude_emg_LVLat      = mean_amplitude_emg_LVLat/length(parameters);
-        Global.mean_amplitude_emg_LRF      = mean_amplitude_emg_LRF/length(parameters);
-        %Global.mean_amplitude_emg_LIl      = mean_amplitude_emg_LIl/length(parameters);
-        % LTA_filtered = emgLib.filter_emg(data.LTA,0);
-        % [burst_duration,Global.mean_amplitude_emg,Global.integral_emg,Global.rms_emg] = emgLib.emg_parameters(LTA_filtered,0);
-        % Global.mean_burst_duration = mean(burst_duration);
+        Global.mean_amplitude_emg_RSol      = mean_amplitude_emg_RSol/length(parameters);
+        Global.mean_amplitude_emg_RTA      = mean_amplitude_emg_RTA/length(parameters);
+        
+        
+
+%         Global.mean_amplitude_emg_LMG      = mean_amplitude_emg_LMG/length(parameters);
+%         Global.mean_amplitude_emg_LST      = mean_amplitude_emg_LST/length(parameters);
+%         %Global.mean_amplitude_emg_LVLat      = mean_amplitude_emg_LVLat/length(parameters);
+%         Global.mean_amplitude_emg_LRF      = mean_amplitude_emg_LRF/length(parameters);
+%         %Global.mean_amplitude_emg_LIl      = mean_amplitude_emg_LIl/length(parameters);
+%         % LTA_filtered = emgLib.filter_emg(data.LTA,0);
+%         % [burst_duration,Global.mean_amplitude_emg,Global.integral_emg,Global.rms_emg] = emgLib.emg_parameters(LTA_filtered,0);
+%         % Global.mean_burst_duration = mean(burst_duration);
 
     end
 
@@ -554,12 +613,16 @@ function parameters = gate_global_parameters(parameters,Global)
          parameters(i).var_coactivation_index = abs(Global.mean_coactivation_index-parameters(i).coactivation_index)/Global.mean_coactivation_index*100;
          
          parameters(i).var_amplitude_emg_LSol = abs(Global.mean_amplitude_emg_LSol-parameters(i).amplitude_emg_LSol)/Global.mean_amplitude_emg_LSol*100;
-         parameters(i).var_amplitude_emg_LMG = abs(Global.mean_amplitude_emg_LMG-parameters(i).amplitude_emg_LMG)/Global.mean_amplitude_emg_LMG*100;
          parameters(i).var_amplitude_emg_LTA = abs(Global.mean_amplitude_emg_LTA-parameters(i).amplitude_emg_LTA)/Global.mean_amplitude_emg_LTA*100;
-         parameters(i).var_amplitude_emg_LST = abs(Global.mean_amplitude_emg_LST-parameters(i).amplitude_emg_LST)/Global.mean_amplitude_emg_LST*100;
-         %parameters(i).var_amplitude_emg_LVLat = abs(Global.mean_amplitude_emg_LVLat-parameters(i).amplitude_emg_LVLat)/Global.mean_amplitude_emg_LVLat*100;
-         parameters(i).var_amplitude_emg_LRF = abs(Global.mean_amplitude_emg_LRF-parameters(i).amplitude_emg_LRF)/Global.mean_amplitude_emg_LRF*100;
-         %parameters(i).var_amplitude_emg_LIl = abs(Global.mean_amplitude_emg_LIl-parameters(i).amplitude_emg_LIl)/Global.mean_amplitude_emg_LIl*100;
+         parameters(i).var_amplitude_emg_RSol = abs(Global.mean_amplitude_emg_RSol-parameters(i).amplitude_emg_RSol)/Global.mean_amplitude_emg_RSol*100;
+         parameters(i).var_amplitude_emg_RTA = abs(Global.mean_amplitude_emg_RTA-parameters(i).amplitude_emg_RTA)/Global.mean_amplitude_emg_RTA*100;
+         
+         
+%          parameters(i).var_amplitude_emg_LMG = abs(Global.mean_amplitude_emg_LMG-parameters(i).amplitude_emg_LMG)/Global.mean_amplitude_emg_LMG*100;
+%          parameters(i).var_amplitude_emg_LST = abs(Global.mean_amplitude_emg_LST-parameters(i).amplitude_emg_LST)/Global.mean_amplitude_emg_LST*100;
+%          %parameters(i).var_amplitude_emg_LVLat = abs(Global.mean_amplitude_emg_LVLat-parameters(i).amplitude_emg_LVLat)/Global.mean_amplitude_emg_LVLat*100;
+%          parameters(i).var_amplitude_emg_LRF = abs(Global.mean_amplitude_emg_LRF-parameters(i).amplitude_emg_LRF)/Global.mean_amplitude_emg_LRF*100;
+%          %parameters(i).var_amplitude_emg_LIl = abs(Global.mean_amplitude_emg_LIl-parameters(i).amplitude_emg_LIl)/Global.mean_amplitude_emg_LIl*100;
 
     end
 end

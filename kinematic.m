@@ -14,7 +14,8 @@ close all;
 
 %dataset sain 
 %data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
-data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
+%data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
+data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
 
 
 % dataset SCI Human
@@ -46,13 +47,18 @@ double_dec = 1000;
 %S_L = filtering(data_healthy.data.LTOE(:,2));
 %time_L = gate(S_L);
 
+Gate = cut_gate(data_healthy.data);
+
 %plot the gate cycle
-%plot_gate(data_SCI.data,start,stop,'B',1,dec,double_dec)
+%plot_gate(data_healthy.data,start,stop,'B',1,dec,double_dec)
 
 %animate the data for comparison with visualisation
 
 animate(data_healthy.data, start, stop,dec) 
 %animate(data_SCI.data)
+
+
+
 
 %% function
 

@@ -4,16 +4,23 @@
 close all;
 
 %dataset sain 
-data=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
+data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
 
-[n,p] = size(data.data.LTOE);
+[n,p] = size(data.data.LSol);
 t = 1:n;
-t = t/100;
+t = t/1000;
 
 % dataset SCI Human
 %data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 
 %% EMG data plot - exploring dataset
+
+figure
+
+plot(t,data.data.LSol)
+hold on
+plot(t,data.data.LMG+3*10^-4)
+%% ECG data plot - exploring dataset
 
 %choose dataset
 
