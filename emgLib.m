@@ -13,16 +13,20 @@ classdef emgLib
             % Compute the envelope
             [u_envelope, ~] = envelope(abs_signal,500,'peak');
 
-            % Apply lowpass filter on the envelope
-            cutoff_freq = 200;
+            % Apply bandpass filter on the envelope
+            cutoff_freq = 150;
             lp_signal = lowpass(u_envelope,cutoff_freq,fs);
-            
+
             % Smooth the envelope using a moving average filter
-            window_size = fs/2; % Half a second
+            window_size = fs/2; 
             smooth_envelope = movmean(lp_signal, window_size);
+
+            
+            
             
             % Plot the original signal and the smoothed envelope
             if (plot_signals == 1)
+                figure
                 t = (0:length(emg_signal)-1)/fs;
                 plot(t,emg_signal,t,smooth_envelope);
                 legend('Original Signal','Smoothed Envelope');
@@ -43,8 +47,8 @@ classdef emgLib
 
         function burst_duration = calculate_burst_duration(emg_signal,fs,wanttoplot)
 
-            threshold_on = 0.3 * max(emg_signal);
-            threshold_off = 0.1 * max(emg_signal);
+            threshold_on  = 0.3 * (max(emg_signal)-min(emg_signal))+min(emg_signal);
+            threshold_off = 0.25 * (max(emg_signal)-min(emg_signal))+min(emg_signal);
             
             % Detect onset and offset of muscle activity
             [onset, offset] = emgLib.detect_bursts(emg_signal, threshold_on, threshold_off);
@@ -59,9 +63,13 @@ classdef emgLib
                 plot(t(offset), emg_signal(offset), 'ro');
                 xlabel('Time (s)');
                 ylabel('Amplitude');
-                legend('EMG', 'Envelope', 'Onset', 'Offset');
+                legend('EMG', 'Onset', 'Offset');
             end
-            burst_duration = (offset - onset) / fs;
+            
+            burst_duration = 0;
+            for i = 1:length(offset)
+                burst_duration = burst_duration + (offset(i) - onset(i))/fs;
+            end
 
                 
         end
@@ -92,33 +100,60 @@ classdef emgLib
             %   onset: A vector of onset times (in samples)
             %   offset: A vector of offset times (in samples)
             
+            onset = [];
+            offset = [];
+            search = "onset";
+            for i=1:length(signal)
+                switch(search)
+                    case "onset"
+                        if signal(i) > threshold_on
+                            onset(end+1) = i;
+                            search = "offset";
+                        end
+                    case "offset"
+                        if signal(i) < threshold_off || i == length(signal)
+                            offset(end+1) = i;
+                            search = "onset";
+                        end 
+                end 
+            end 
 
-            % Find local peaks in the signal
-            [peaks, peak_locs] = findpeaks(signal);
-            % Sort peaks and peak_locs in ascending order
-            [peaks, sort_idx] = sort(peaks);
-            peak_locs = peak_locs(sort_idx);
-            
-            % Initialize onset and offset vectors
-            onset = zeros(size(peaks));
-            offset = zeros(size(peaks));
-            
-            % Loop through the peaks to find the corresponding onset and offset
-            for i = 1:length(peaks)
-                % Find the onset
-                j = peak_locs(i);
-                while j > 1 && signal(j) > signal(j-1) && signal(j) > threshold_on
-                    j = j - 1;
-                end
-                onset(i) = j;
-                
-                % Find the offset
-                j = peak_locs(i);
-                while j < length(signal) && signal(j) > signal(j+1) && signal(j) > threshold_off
-                    j = j + 1;
-                end
-                offset(i) = j;
-            end
+
+%             % Find local peaks in the signal
+%             [peaks, peak_locs] = findpeaks(signal);
+% %             % Sort peaks and peak_locs in ascending order
+% %             [peaks, sort_idx] = sort(peaks);
+% %             peak_locs = peak_locs(sort_idx);
+% 
+%             [max_peak,max_idx] = max(peaks);
+%             max_peak_loc = peak_locs(max_idx);
+% 
+% 
+%             
+% %             % Initialize onset and offset vectors
+% %             onset = zeros(size(peaks));
+% %             offset = zeros(size(peaks));
+%             
+%             % Loop through the peaks to find the corresponding onset and offset
+%             for i = 1:length(peaks)
+%                 % Find the onset
+%                 j = peak_locs(i);
+%                 j = max_peak_loc;
+%                 while j > 1 && signal(j) > signal(j-1) && signal(j) > threshold_on
+%                     j = j - 1;
+%                 end
+% %                 onset(i) = j;
+%                 onset = j;
+%                 
+%                 % Find the offset
+%                 j = peak_locs(i);
+%                 j = max_peak_loc;
+%                 while j < length(signal) && signal(j) > signal(j+1) && signal(j) > threshold_off
+%                     j = j + 1;
+%                 end
+%                 %offset(i) = j;
+%                 offset = j;
+%             end
         
         end
 

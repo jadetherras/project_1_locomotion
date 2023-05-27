@@ -50,9 +50,9 @@ data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 % 
 % data_SCI_1kmh_NoEES=load("Dataset SCI Human/SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
-
-%% Loading the data Lucas
-
+% 
+% % Loading the data Lucas
+% 
 % %dataset sain 
 % data_healthy_1_2kmh=load("Healthy/1_AML01_2kmh.mat");
 % data_healthy_2_2kmh=load("Healthy/1_AML02_2kmh.mat");
@@ -457,20 +457,32 @@ function parameter = gate_parameters(data,gate,S)
     EMG_filtered = emgLib.filter_emg(data.LSol(t_idx_emg),data.EMG_sr,0);
     %[parameter.amplitude_emg_LSol,parameter.integral_emg_LSol,parameter.rms_emg_LSol] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
     [parameter.amplitude_emg_LSol,~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-
-
-    EMG_filtered = emgLib.filter_emg(data.LTA(t_idx_emg),data.EMG_sr,0);
-    %[parameter.amplitude_emg_LTA,parameter.integral_emg_LTA,parameter.rms_emg_LTA] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-    [parameter.amplitude_emg_LTA,~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-
-
+ 
     EMG_filtered = emgLib.filter_emg(data.RSol(t_idx_emg),data.EMG_sr,0);
     %[parameter.amplitude_emg_RSol,parameter.integral_emg_RSol,parameter.rms_emg_RSol] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
     [parameter.amplitude_emg_RSol,~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
-    EMG_filtered = emgLib.filter_emg(data.RTA(t_idx_emg),data.EMG_sr,0);
+    EMG_filtered_flexor_R = emgLib.filter_emg(data.RTA(t_idx_emg),data.EMG_sr,0);
     %[parameter.amplitude_emg_RTA,parameter.integral_emg_RTA,parameter.rms_emg_RTA] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-    [parameter.amplitude_emg_RTA,~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+    [parameter.amplitude_emg_RTA,~, ~] = emgLib.emg_parameters(EMG_filtered_flexor_R,data.EMG_sr);
+
+    EMG_filtered_flexor_L = emgLib.filter_emg(data.LTA(t_idx_emg),data.EMG_sr,0);
+    %[parameter.amplitude_emg_LTA,parameter.integral_emg_LTA,parameter.rms_emg_LTA] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+    [parameter.amplitude_emg_LTA,~, ~] = emgLib.emg_parameters(EMG_filtered_flexor_L,data.EMG_sr);
+
+    EMG_filtered_extensor_L = emgLib.filter_emg(data.LMG(t_idx_emg),data.EMG_sr,0);
+    [parameter.amplitude_emg_LMG,~,~] = emgLib.emg_parameters(EMG_filtered_extensor_L,data.EMG_sr);
+    
+    EMG_filtered_extensor_R = emgLib.filter_emg(data.RMG(t_idx_emg),data.EMG_sr,0);
+    [parameter.amplitude_emg_RMG,~,~] = emgLib.emg_parameters(EMG_filtered_extensor_R,data.EMG_sr);
+
+
+    % Burst
+    parameter.extensorL_burst_duration = emgLib.calculate_burst_duration(EMG_filtered_extensor_L,data.EMG_sr,0);
+    parameter.extensorR_burst_duration = emgLib.calculate_burst_duration(EMG_filtered_extensor_R,data.EMG_sr,0);
+    
+    parameter.flexorL_burst_duration = emgLib.calculate_burst_duration(EMG_filtered_flexor_L,data.EMG_sr,0);
+    parameter.flexorR_burst_duration = emgLib.calculate_burst_duration(EMG_filtered_flexor_R,data.EMG_sr,0);
 
 
 %     EMG_filtered = emgLib.filter_emg(data.LMG(t_idx_emg),data.EMG_sr,0);
@@ -521,7 +533,10 @@ function Global = get_global(parameters)
 %     mean_amplitude_emg_LRF      = 0;
 %     %mean_amplitude_emg_LIl     = 0;
 
-
+    mean_flexorL_burst_duration = 0;
+    mean_extensorL_burst_duration = 0;
+    mean_flexorR_burst_duration = 0;
+    mean_extensorR_burst_duration = 0;
 
 
     if (not(isempty(parameters)))
@@ -556,7 +571,13 @@ function Global = get_global(parameters)
 %             %mean_amplitude_emg_LVLat = mean_amplitude_emg_LVLat + parameters(i).amplitude_emg_LVLat;
 %             mean_amplitude_emg_LRF = mean_amplitude_emg_LRF + parameters(i).amplitude_emg_LRF;
 %             %mean_amplitude_emg_LIl = mean_amplitude_emg_LIl + parameters(i).amplitude_emg_LIl;
+
+            mean_flexorL_burst_duration = mean_flexorL_burst_duration + parameters(i).flexorL_burst_duration;
+            mean_extensorL_burst_duration = mean_extensorL_burst_duration + parameters(i).extensorL_burst_duration;
             
+            
+            mean_flexorR_burst_duration = mean_flexorR_burst_duration + parameters(i).flexorR_burst_duration;
+            mean_extensorR_burst_duration = mean_extensorR_burst_duration + parameters(i).extensorR_burst_duration;
             
             
 
@@ -581,7 +602,12 @@ function Global = get_global(parameters)
         Global.mean_amplitude_emg_LTA      = mean_amplitude_emg_LTA/length(parameters);
         Global.mean_amplitude_emg_RSol      = mean_amplitude_emg_RSol/length(parameters);
         Global.mean_amplitude_emg_RTA      = mean_amplitude_emg_RTA/length(parameters);
+
+        Global.mean_flexorL_burst_duration = mean_flexorL_burst_duration/length(parameters);
+        Global.mean_extensorL_burst_duration = mean_extensorL_burst_duration/length(parameters);
         
+        Global.mean_flexorR_burst_duration = mean_flexorR_burst_duration/length(parameters);
+        Global.mean_extensorR_burst_duration = mean_extensorR_burst_duration/length(parameters);
         
 
 %         Global.mean_amplitude_emg_LMG      = mean_amplitude_emg_LMG/length(parameters);
@@ -617,6 +643,12 @@ function parameters = gate_global_parameters(parameters,Global)
          parameters(i).var_amplitude_emg_RSol = abs(Global.mean_amplitude_emg_RSol-parameters(i).amplitude_emg_RSol)/Global.mean_amplitude_emg_RSol*100;
          parameters(i).var_amplitude_emg_RTA = abs(Global.mean_amplitude_emg_RTA-parameters(i).amplitude_emg_RTA)/Global.mean_amplitude_emg_RTA*100;
          
+         parameters(i).var_flexorL_burst_duration = abs(Global.mean_flexorL_burst_duration-parameters(i).flexorL_burst_duration)/Global.mean_flexorL_burst_duration;
+         parameters(i).var_extensorL_burst_duration = abs(Global.mean_extensorL_burst_duration-parameters(i).extensorL_burst_duration)/Global.mean_extensorL_burst_duration;
+         
+         parameters(i).var_flexorR_burst_duration = abs(Global.mean_flexorR_burst_duration-parameters(i).flexorR_burst_duration)/Global.mean_flexorR_burst_duration;
+         parameters(i).var_extensorR_burst_duration = abs(Global.mean_extensorR_burst_duration-parameters(i).extensorR_burst_duration)/Global.mean_extensorR_burst_duration;
+
          
 %          parameters(i).var_amplitude_emg_LMG = abs(Global.mean_amplitude_emg_LMG-parameters(i).amplitude_emg_LMG)/Global.mean_amplitude_emg_LMG*100;
 %          parameters(i).var_amplitude_emg_LST = abs(Global.mean_amplitude_emg_LST-parameters(i).amplitude_emg_LST)/Global.mean_amplitude_emg_LST*100;
