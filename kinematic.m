@@ -15,10 +15,11 @@ close all;
 %dataset sain 
 %data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
 %data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
+data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
 
 
 % dataset SCI Human
-data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
+%data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 
 %% Plot the movement
 
@@ -27,7 +28,7 @@ data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
 %test range
 
 %if you want all the data
-N = length(data_SCI.data.LHIP(:,1));
+N = length(data_healthy.data.LHIP(:,1));
 
 %if you want just one gait
 start = 1; %this values come from the gate detection, we decided to plot one gait randomly
@@ -46,13 +47,18 @@ double_dec = 1000;
 %S_L = filtering(data_healthy.data.LTOE(:,2));
 %time_L = gate(S_L);
 
+Gate = cut_gate(data_healthy.data);
+
 %plot the gate cycle
-plot_gate(data_SCI.data,start,stop,'B',1,dec,double_dec)
+%plot_gate(data_healthy.data,start,stop,'B',1,dec,double_dec)
 
 %animate the data for comparison with visualisation
 
-%animate(data_SCI.data, start, stop,dec) 
+animate(data_healthy.data, start, stop,dec) 
 %animate(data_SCI.data)
+
+
+
 
 %% function
 
