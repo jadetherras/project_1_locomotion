@@ -526,6 +526,10 @@ function Global = get_global(parameters)
     mean_amplitude_emg_LTA      = 0;
     mean_amplitude_emg_RSol      = 0;
     mean_amplitude_emg_RTA      = 0;
+    mean_amplitude_emg_RMG      = 0;
+    mean_amplitude_emg_LMG      = 0;
+   
+ 
 
 %     mean_amplitude_emg_LMG      = 0;
 %     mean_amplitude_emg_LST      = 0;
@@ -563,7 +567,10 @@ function Global = get_global(parameters)
             mean_amplitude_emg_LTA = mean_amplitude_emg_LTA + parameters(i).amplitude_emg_LTA;
             mean_amplitude_emg_RSol = mean_amplitude_emg_RSol + parameters(i).amplitude_emg_RSol;
             mean_amplitude_emg_RTA = mean_amplitude_emg_RTA + parameters(i).amplitude_emg_RTA;
-            
+            mean_amplitude_emg_RMG = mean_amplitude_emg_RMG + parameters(i).amplitude_emg_RMG;
+            mean_amplitude_emg_LMG = mean_amplitude_emg_LMG + parameters(i).amplitude_emg_LMG;
+        
+        
             
 
 %             mean_amplitude_emg_LMG = mean_amplitude_emg_LMG + parameters(i).amplitude_emg_LMG;
@@ -602,6 +609,9 @@ function Global = get_global(parameters)
         Global.mean_amplitude_emg_LTA      = mean_amplitude_emg_LTA/length(parameters);
         Global.mean_amplitude_emg_RSol      = mean_amplitude_emg_RSol/length(parameters);
         Global.mean_amplitude_emg_RTA      = mean_amplitude_emg_RTA/length(parameters);
+
+        Global.mean_amplitude_emg_RMG      = mean_amplitude_emg_RMG/length(parameters);
+        Global.mean_amplitude_emg_LMG      = mean_amplitude_emg_LMG/length(parameters);
 
         Global.mean_flexorL_burst_duration = mean_flexorL_burst_duration/length(parameters);
         Global.mean_extensorL_burst_duration = mean_extensorL_burst_duration/length(parameters);
@@ -643,6 +653,10 @@ function parameters = gate_global_parameters(parameters,Global)
          parameters(i).var_amplitude_emg_RSol = abs(Global.mean_amplitude_emg_RSol-parameters(i).amplitude_emg_RSol)/Global.mean_amplitude_emg_RSol*100;
          parameters(i).var_amplitude_emg_RTA = abs(Global.mean_amplitude_emg_RTA-parameters(i).amplitude_emg_RTA)/Global.mean_amplitude_emg_RTA*100;
          
+         parameters(i).var_amplitude_emg_RMG = abs(Global.mean_amplitude_emg_RMG-parameters(i).amplitude_emg_RMG)/Global.mean_amplitude_emg_RMG*100;
+         parameters(i).var_amplitude_emg_LMG = abs(Global.mean_amplitude_emg_LMG-parameters(i).amplitude_emg_LMG)/Global.mean_amplitude_emg_LMG*100;
+         
+
          parameters(i).var_flexorL_burst_duration = abs(Global.mean_flexorL_burst_duration-parameters(i).flexorL_burst_duration)/Global.mean_flexorL_burst_duration;
          parameters(i).var_extensorL_burst_duration = abs(Global.mean_extensorL_burst_duration-parameters(i).extensorL_burst_duration)/Global.mean_extensorL_burst_duration;
          
@@ -650,11 +664,11 @@ function parameters = gate_global_parameters(parameters,Global)
          parameters(i).var_extensorR_burst_duration = abs(Global.mean_extensorR_burst_duration-parameters(i).extensorR_burst_duration)/Global.mean_extensorR_burst_duration;
 
          
-%          parameters(i).var_amplitude_emg_LMG = abs(Global.mean_amplitude_emg_LMG-parameters(i).amplitude_emg_LMG)/Global.mean_amplitude_emg_LMG*100;
-%          parameters(i).var_amplitude_emg_LST = abs(Global.mean_amplitude_emg_LST-parameters(i).amplitude_emg_LST)/Global.mean_amplitude_emg_LST*100;
-%          %parameters(i).var_amplitude_emg_LVLat = abs(Global.mean_amplitude_emg_LVLat-parameters(i).amplitude_emg_LVLat)/Global.mean_amplitude_emg_LVLat*100;
-%          parameters(i).var_amplitude_emg_LRF = abs(Global.mean_amplitude_emg_LRF-parameters(i).amplitude_emg_LRF)/Global.mean_amplitude_emg_LRF*100;
-%          %parameters(i).var_amplitude_emg_LIl = abs(Global.mean_amplitude_emg_LIl-parameters(i).amplitude_emg_LIl)/Global.mean_amplitude_emg_LIl*100;
+%           parameters(i).var_amplitude_emg_LMG = abs(Global.mean_amplitude_emg_LMG-parameters(i).amplitude_emg_LMG)/Global.mean_amplitude_emg_LMG*100;
+%           parameters(i).var_amplitude_emg_LST = abs(Global.mean_amplitude_emg_LST-parameters(i).amplitude_emg_LST)/Global.mean_amplitude_emg_LST*100;
+%           %parameters(i).var_amplitude_emg_LVLat = abs(Global.mean_amplitude_emg_LVLat-parameters(i).amplitude_emg_LVLat)/Global.mean_amplitude_emg_LVLat*100;
+%           parameters(i).var_amplitude_emg_LRF = abs(Global.mean_amplitude_emg_LRF-parameters(i).amplitude_emg_LRF)/Global.mean_amplitude_emg_LRF*100;
+%           %parameters(i).var_amplitude_emg_LIl = abs(Global.mean_amplitude_emg_LIl-parameters(i).amplitude_emg_LIl)/Global.mean_amplitude_emg_LIl*100;
 
     end
 end
