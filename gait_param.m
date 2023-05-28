@@ -462,25 +462,25 @@ function parameter = gate_parameters(data,gate,S)
     
     EMG_filtered = emgLib.filter_emg(data.LSol(t_idx_emg),data.EMG_sr,0);
     %[parameter.amplitude_emg_LSol,parameter.integral_emg_LSol,parameter.rms_emg_LSol] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-    [parameter.amplitude_emg_LSol,~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
- 
+    [parameter.amplitude_emg_LSol, ~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+
     EMG_filtered = emgLib.filter_emg(data.RSol(t_idx_emg),data.EMG_sr,0);
     %[parameter.amplitude_emg_RSol,parameter.integral_emg_RSol,parameter.rms_emg_RSol] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-    [parameter.amplitude_emg_RSol,~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+    [parameter.amplitude_emg_RSol, ~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
     EMG_filtered_flexor_R = emgLib.filter_emg(data.RTA(t_idx_emg),data.EMG_sr,0);
     %[parameter.amplitude_emg_RTA,parameter.integral_emg_RTA,parameter.rms_emg_RTA] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-    [parameter.amplitude_emg_RTA,~, ~] = emgLib.emg_parameters(EMG_filtered_flexor_R,data.EMG_sr);
+    [parameter.amplitude_emg_RTA, ~, ~] = emgLib.emg_parameters(EMG_filtered_flexor_R,data.EMG_sr);
 
     EMG_filtered_flexor_L = emgLib.filter_emg(data.LTA(t_idx_emg),data.EMG_sr,0);
     %[parameter.amplitude_emg_LTA,parameter.integral_emg_LTA,parameter.rms_emg_LTA] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
     [parameter.amplitude_emg_LTA,~, ~] = emgLib.emg_parameters(EMG_filtered_flexor_L,data.EMG_sr);
 
     EMG_filtered_extensor_L = emgLib.filter_emg(data.LMG(t_idx_emg),data.EMG_sr,0);
-    [parameter.amplitude_emg_LMG,~,~] = emgLib.emg_parameters(EMG_filtered_extensor_L,data.EMG_sr);
+    [parameter.amplitude_emg_LMG,~, ~] = emgLib.emg_parameters(EMG_filtered_extensor_L,data.EMG_sr);
     
     EMG_filtered_extensor_R = emgLib.filter_emg(data.RMG(t_idx_emg),data.EMG_sr,0);
-    [parameter.amplitude_emg_RMG,~,~] = emgLib.emg_parameters(EMG_filtered_extensor_R,data.EMG_sr);
+    [parameter.amplitude_emg_RMG,~, ~] = emgLib.emg_parameters(EMG_filtered_extensor_R,data.EMG_sr);
 
 
     % Burst
@@ -503,9 +503,9 @@ function parameter = gate_parameters(data,gate,S)
 % 
 %     EMG_filtered = emgLib.filter_emg(data.LRF(t_idx_emg),data.EMG_sr,0);
 %     [parameter.amplitude_emg_LRF,parameter.integral_emg_LRF,parameter.rms_emg_LRF] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-% 
-%     %EMG_filtered = emgLib.filter_emg(data.LIl(t_idx_emg),data.EMG_sr,0);
-%     %[parameter.amplitude_emg_LIl,parameter.integral_emg_LIl,parameter.rms_emg_LIl] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
+
+    %EMG_filtered = emgLib.filter_emg(data.LIl(t_idx_emg),data.EMG_sr,0);
+    %[parameter.amplitude_emg_LIl,parameter.integral_emg_LIl,parameter.rms_emg_LIl] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
     
 end
@@ -537,11 +537,11 @@ function Global = get_global(parameters)
    
  
 
-%     mean_amplitude_emg_LMG      = 0;
-%     mean_amplitude_emg_LST      = 0;
-%     %mean_amplitude_emg_LVLat      = 0;
-%     mean_amplitude_emg_LRF      = 0;
-%     %mean_amplitude_emg_LIl     = 0;
+    %mean_amplitude_emg_LMG      = 0;
+    %mean_amplitude_emg_LST      = 0;
+    %mean_amplitude_emg_LVLat      = 0;
+    %mean_amplitude_emg_LRF      = 0;
+    %mean_amplitude_emg_LIl     = 0;
 
     mean_flexorL_burst_duration = 0;
     mean_extensorL_burst_duration = 0;
@@ -579,11 +579,11 @@ function Global = get_global(parameters)
         
             
 
-%             mean_amplitude_emg_LMG = mean_amplitude_emg_LMG + parameters(i).amplitude_emg_LMG;
-%             mean_amplitude_emg_LST = mean_amplitude_emg_LST + parameters(i).amplitude_emg_LST;
-%             %mean_amplitude_emg_LVLat = mean_amplitude_emg_LVLat + parameters(i).amplitude_emg_LVLat;
-%             mean_amplitude_emg_LRF = mean_amplitude_emg_LRF + parameters(i).amplitude_emg_LRF;
-%             %mean_amplitude_emg_LIl = mean_amplitude_emg_LIl + parameters(i).amplitude_emg_LIl;
+            %mean_amplitude_emg_LMG = mean_amplitude_emg_LMG + parameters(i).amplitude_emg_LMG;
+            %mean_amplitude_emg_LST = mean_amplitude_emg_LST + parameters(i).amplitude_emg_LST;
+            %mean_amplitude_emg_LVLat = mean_amplitude_emg_LVLat + parameters(i).amplitude_emg_LVLat;
+            %mean_amplitude_emg_LRF = mean_amplitude_emg_LRF + parameters(i).amplitude_emg_LRF;
+            %mean_amplitude_emg_LIl = mean_amplitude_emg_LIl + parameters(i).amplitude_emg_LIl;
 
             mean_flexorL_burst_duration = mean_flexorL_burst_duration + parameters(i).flexorL_burst_duration;
             mean_extensorL_burst_duration = mean_extensorL_burst_duration + parameters(i).extensorL_burst_duration;
@@ -609,7 +609,7 @@ function Global = get_global(parameters)
 
         Global.mean_stridewidth = mean_stridewidth/length(parameters);
 
-        %EMG
+%         %EMG
         Global.mean_coactivation_index = mean_coactivation_index/length(parameters);
         Global.mean_amplitude_emg_LSol      = mean_amplitude_emg_LSol/length(parameters);
         Global.mean_amplitude_emg_LTA      = mean_amplitude_emg_LTA/length(parameters);
@@ -624,7 +624,7 @@ function Global = get_global(parameters)
         
         Global.mean_flexorR_burst_duration = mean_flexorR_burst_duration/length(parameters);
         Global.mean_extensorR_burst_duration = mean_extensorR_burst_duration/length(parameters);
-        
+%         
 
 %         Global.mean_amplitude_emg_LMG      = mean_amplitude_emg_LMG/length(parameters);
 %         Global.mean_amplitude_emg_LST      = mean_amplitude_emg_LST/length(parameters);
@@ -644,14 +644,14 @@ function parameters = gate_global_parameters(parameters,Global)
     %get the global values dependent parameters (for exemple the
     %variability)
     for i = 1:(length(parameters))
-         parameters(i).var_step_height_left_mm = abs(Global.mean_step_height_left- parameters(i).step_height_left_mm)/Global.mean_step_height_left*100;
-         parameters(i).var_step_height_right_mm = abs(Global.mean_step_height_right- parameters(i).step_height_right_mm)/Global.mean_step_height_right*100;
-         parameters(i).var_step_length_left_mm = abs(Global.mean_step_length_left- parameters(i).step_length_left_mm)/Global.mean_step_length_left*100;
-         parameters(i).var_step_length_right_mm = abs(Global.mean_step_length_right- parameters(i).step_length_right_mm)/Global.mean_step_length_right*100;
-         parameters(i).var_stridewidth = abs(Global.mean_stridewidth- parameters(i).stridewidth_mm)/Global.mean_stridewidth*100;
+%          parameters(i).var_step_height_left_mm = abs(Global.mean_step_height_left- parameters(i).step_height_left_mm)/Global.mean_step_height_left*100;
+%          parameters(i).var_step_height_right_mm = abs(Global.mean_step_height_right- parameters(i).step_height_right_mm)/Global.mean_step_height_right*100;
+%          parameters(i).var_step_length_left_mm = abs(Global.mean_step_length_left- parameters(i).step_length_left_mm)/Global.mean_step_length_left*100;
+%          parameters(i).var_step_length_right_mm = abs(Global.mean_step_length_right- parameters(i).step_length_right_mm)/Global.mean_step_length_right*100;
+          parameters(i).var_stridewidth = abs(Global.mean_stridewidth- parameters(i).stridewidth_mm)/Global.mean_stridewidth*100;
 
          
-         %EMG 
+%          %EMG 
          parameters(i).var_coactivation_index = abs(Global.mean_coactivation_index-parameters(i).coactivation_index)/Global.mean_coactivation_index*100;
          
          parameters(i).var_amplitude_emg_LSol = abs(Global.mean_amplitude_emg_LSol-parameters(i).amplitude_emg_LSol)/Global.mean_amplitude_emg_LSol*100;
@@ -687,5 +687,12 @@ function parameters =  remove_param(parameters)
     %parameters = rmfield(parameters,"step_length_left_mm");
     %parameters = rmfield(parameters,"step_height_right_mm");
     %parameters = rmfield(parameters,"step_height_left_mm");
+
+    parameters = rmfield(parameters,"amplitude_emg_LSol");
+    parameters = rmfield(parameters,"amplitude_emg_RSol");
+    parameters = rmfield(parameters,"amplitude_emg_LTA");
+    parameters = rmfield(parameters,"amplitude_emg_RTA");
+    parameters = rmfield(parameters,"amplitude_emg_LMG");
+    parameters = rmfield(parameters,"amplitude_emg_RMG");
     
 end
