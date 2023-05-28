@@ -4,7 +4,7 @@
 close all;
 
 %dataset sain 
-data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
+data=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
 [n,p] = size(data.data.LSol);
 t = 1:n;
@@ -21,6 +21,10 @@ plot(t,data.data.LSol)
 hold on
 plot(t,data.data.LMG+3*10^-4)
 %% ECG data plot - exploring dataset
+
+[n,p] = size(data.data.LKNE);
+t = 1:n;
+t = t/100;
 
 %choose dataset
 
@@ -62,11 +66,11 @@ plot(t,data.data.LMG+3*10^-4)
 % title('plot knee marker')
 % savefig('figure/H_1_2kmh_knee.fig')
 % 
-% figure
-% plot(data.data.LKNE(:,2), data.data.LKNE(:,3))
-% legend('movement')
-% xlabel('front/back'), ylabel('up/down')
-% title('plot knee marker')
+ figure
+ plot(data.data.LKNE(:,2), data.data.LKNE(:,3))
+ legend('movement')
+ xlabel('front/back'), ylabel('up/down')
+ title('plot knee marker')
 % savefig('figure/H_1_2kmh_knee_yz.fig')
 % 
 % %ankle
@@ -151,20 +155,36 @@ plot(t,data.data.LMG+3*10^-4)
 % title('plot ankle marker')
 % savefig('figure/SCI_1kmh_ankle_yz.fig')
 % 
-% %toe
-% figure
-% plot(t2, [data.data.LTOE])
-% legend('x','y','z')
-% xlabel('Time'), ylabel('Displacement')
-% title('plot toe marker')
-% savefig('figure/SCI_1kmh_toe.fig')
+ %toe
+ figure
+ plot(t, [data.data.LTOE])
+ legend('x','y','z')
+ xlabel('Time'), ylabel('Displacement')
+ title('plot toe marker')
+ savefig('figure/SCI_1kmh_toe.fig')
+
+ %toe
+ figure
+ plot(t, [data.data.LANK])
+ legend('x','y','z')
+ xlabel('Time'), ylabel('Displacement')
+ title('plot ankle marker')
+ savefig('figure/SCI_1kmh_toe.fig')
 % 
-% figure
-% plot(data.data.LTOE(:,2), data.data.LTOE(:,3))
-% legend('movement')
-% xlabel('front/back'), ylabel('up/down')
-% title('plot toe marker')
-% savefig('figure/SCI_1kmh_toe_yz.fig')
+
+ figure
+ plot(data.data.LTOE(:,2), data.data.LTOE(:,3))
+ legend('movement')
+ xlabel('front/back'), ylabel('up/down')
+ title('plot toe marker')
+ savefig('figure/SCI_1kmh_toe_yz.fig')
+
+ figure
+ plot(data.data.LANK(:,2), data.data.LANK(:,3))
+ legend('movement')
+ xlabel('front/back'), ylabel('up/down')
+ title('plot ankle marker')
+ savefig('figure/SCI_1kmh_toe_yz.fig')
 
 
 %% filter the signal without function

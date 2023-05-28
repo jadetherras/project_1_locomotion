@@ -258,11 +258,11 @@ end
 % well detected)
 % Gate is a structure, each gate is represented but it events
 function Gate = cut_gate(data,constraint) 
+    
     T = 1/data.marker_sr;
-
     %filtering
-     S_L = filtering(data.LTOE(:,2));
-     S_R = filtering(data.RTOE(:,2));
+     S_L = filtering(data.LANK(:,2));
+     S_R = filtering(data.RANK(:,2));
 
 %     filtering
 %     S_L = data.LTOE(:,2);
@@ -285,11 +285,18 @@ function Gate = cut_gate(data,constraint)
         if sign(Gl(i)) ~= sign(Gl(i-1)) && sign(Gl(i)) < 0 
             
             if isfield(gate,'strikeR')
+                
                 gate.offnext = i;
-                if not(constraint) || (constraint && (gate.offnext - gate.offL)*T <=4)
+                gate.duration = gate.offnext - gate.offL;
+                gate.stepL = S_L(gate.offL)-S_L(gate.strikeL);
+                gate.stepR = S_R(gate.offR)-S_R(gate.strikeR);
+                
+                % we don't take the speed in account, bad but anyway it
+                % does work because remove only in SCI (slow)
+                if not(constraint) || (constraint && gate.duration*T <=4 && gate.stepL>50 && gate.stepR>50)
                     Gate = [Gate,gate];
-                elseif constraint && gate.offnext - gate.offL >4 
-                    disp(['remove a gate with duration',num2str(gate.offnext - gate.offL),'in position',num2str(gate.offL)])
+                elseif constraint  
+                    disp(['remove a gate with duration',num2str(gate.duration),'in position',num2str(gate.offL)])
                 end
             end
 
@@ -311,7 +318,6 @@ function Gate = cut_gate(data,constraint)
 
         end
     end
-
 end
 
 %% gate parameters functions
@@ -373,11 +379,11 @@ function parameter = gate_parameters(data,gate,S)
     
     parameter.step_height_left_mm = max(data.LANK(gate.offL:gate.offnext,3))-min(data.LANK(gate.offL:gate.offnext,3));
     
-    parameter.step_length_left_mm = (abs(data.LTOE(gate.strikeL,2) -data.LTOE(gate.offL,2)) + parameter.swing_duration_left_sec*speed);
+    parameter.step_length_left_mm = (abs(data.LANK(gate.strikeL,2) -data.LANK(gate.offL,2)) + parameter.swing_duration_left_sec*speed);
     
     parameter.step_height_right_mm = max(data.RANK(gate.offL:gate.offnext,3))-min(data.RANK(gate.offL:gate.offnext,3));
     
-    parameter.step_length_right_mm = (abs(data.RTOE(gate.strikeR,2)-(data.RTOE(gate.offR,2))) + parameter.swing_duration_right_sec*speed);
+    parameter.step_length_right_mm = (abs(data.RANK(gate.strikeR,2)-(data.RANK(gate.offR,2))) + parameter.swing_duration_right_sec*speed);
     
     %parameter.step_height_symetry = abs(parameter.step_height_left_mm-parameter.step_height_right_mm);
 

@@ -13,13 +13,14 @@
 close all;
 
 %dataset sain 
-%data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
-%data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
-data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
+%data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
+%data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
+%data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
 
 
 % dataset SCI Human
-%data_SCI=load("SCI Human/DM002_TDM_08_1kmh.mat");
+data=load("SCI Human/DM002_TDM_08_1kmh.mat");
+%data=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
 %% Plot the movement
 
@@ -28,15 +29,15 @@ data_healthy=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML0
 %test range
 
 %if you want all the data
-N = length(data_healthy.data.LHIP(:,1));
+N = length(data.data.LHIP(:,1));
 
 %if you want just one gait
 start = 1; %this values come from the gate detection, we decided to plot one gait randomly
 stop = N;
 
-T = 1/100;
-dec = 1000/3600*T*1000; %change here the velocity
-%dec = 0;
+T = 1/data.data.marker_sr;
+%dec = 1000/3600*T*1000; %change here the velocity
+dec = 0;
 
 %visualisation 2 limb
 double_dec = 1000;
@@ -47,14 +48,14 @@ double_dec = 1000;
 %S_L = filtering(data_healthy.data.LTOE(:,2));
 %time_L = gate(S_L);
 
-Gate = cut_gate(data_healthy.data);
+Gate = cut_gate(data.data,true);
 
 %plot the gate cycle
 %plot_gate(data_healthy.data,start,stop,'B',1,dec,double_dec)
 
 %animate the data for comparison with visualisation
 
-animate(data_healthy.data, start, stop,dec) 
+animate(data.data, start, stop,dec) 
 %animate(data_SCI.data)
 
 
@@ -100,11 +101,12 @@ end
 % each value represent a foot strike
 % data is the dataset
 % gate is a array of position 
-function Gate = cut_gate(data) 
-
+function Gate = cut_gate(data,constraint) 
+    
+    T = 1/data.marker_sr;
     %filtering
-     S_L = filtering(data.LTOE(:,2));
-     S_R = filtering(data.RTOE(:,2));
+     S_L = filtering(data.LANK(:,2));
+     S_R = filtering(data.RANK(:,2));
 
 %     filtering
 %     S_L = data.LTOE(:,2);
@@ -127,8 +129,19 @@ function Gate = cut_gate(data)
         if sign(Gl(i)) ~= sign(Gl(i-1)) && sign(Gl(i)) < 0 
             
             if isfield(gate,'strikeR')
+                
                 gate.offnext = i;
-                Gate = [Gate,gate];
+                gate.duration = gate.offnext - gate.offL;
+                gate.stepL = S_L(gate.offL)-S_L(gate.strikeL);
+                gate.stepR = S_R(gate.offR)-S_R(gate.strikeR);
+                
+                % we don't take the speed in account, bad but anyway it
+                % does work because remove only in SCI (slow)
+                if not(constraint) || (constraint && gate.duration*T <=4 && gate.stepL>50 && gate.stepR>50)
+                    Gate = [Gate,gate];
+                elseif constraint  
+                    disp(['remove a gate with duration',num2str(gate.duration),'in position',num2str(gate.offL)])
+                end
             end
 
             on_gate = true;
@@ -177,7 +190,7 @@ function plot_gate(data,N1,N2,side,frame, dec, double_dec)
     color_gateoff = 'red';
     color_gatestrike = 'blue';
 
-    Gate = cut_gate(data);
+    Gate = cut_gate(data,true);
 
     V = 1;
     while V < length(Gate) && Gate(V).offL < Min
@@ -265,11 +278,11 @@ end
 function animate(data, start, stop,dec)
 
     %marker = ["LHIP","LKNE", "LANK","LTOE"];
-    T = 1/data.marker_sr*2;
+    T = 1/(data.marker_sr*3);
 
     % calculate timing left and right
 
-    Gate = cut_gate(data);
+    Gate = cut_gate(data,true);
     
     V = 1;
     if start >= Gate(V).offnext && V < length(Gate)
