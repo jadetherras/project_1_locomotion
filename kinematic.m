@@ -15,11 +15,11 @@ close all;
 %dataset sain 
 %data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
 %data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
-%data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
+%data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/2_AML02_3kmh_inclined.mat");
 
 
 % dataset SCI Human
-data=load("SCI Human/DM002_TDM_08_1kmh.mat");
+%data=load("SCI Human/DM002_TDM_08_1kmh.mat");
 %data=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
 %% Plot the movement
@@ -48,7 +48,7 @@ double_dec = 1000;
 %S_L = filtering(data_healthy.data.LTOE(:,2));
 %time_L = gate(S_L);
 
-Gate = cut_gate(data.data,true);
+Gate = cut_gate(data.data,true,true);
 
 %plot the gate cycle
 %plot_gate(data_healthy.data,start,stop,'B',1,dec,double_dec)
@@ -69,7 +69,7 @@ function [S_f] = filtering(S)
 
     %low, high pass filter
     d1 = designfilt("lowpassiir",FilterOrder=2, HalfPowerFrequency=0.03,DesignMethod="butter");
-    S_f = filtfilt(d1,S);
+    S_f = filtfilt(d1,highpass(S,1e-1,1e2));
 end
     
 % gate : take a signal and calculate the gate cycle (using the gradient)
@@ -101,20 +101,44 @@ end
 % each value represent a foot strike
 % data is the dataset
 % gate is a array of position 
-function Gate = cut_gate(data,constraint) 
+function Gate = cut_gate(data,constraint,plotting) 
     
     T = 1/data.marker_sr;
+
     %filtering
-     S_L = filtering(data.LANK(:,2));
-     S_R = filtering(data.RANK(:,2));
+    Sy_L = filtering(data.LANK(:,2));
+    Sy_R = filtering(data.RANK(:,2));
+    Sz_L = filtering(data.LANK(:,3));
+    Sz_R = filtering(data.RANK(:,3));
 
-%     filtering
-%     S_L = data.LTOE(:,2);
-%     S_R = data.RTOE(:,2);
+     % calculate the gradient
+    Gyl = normalize(gradient(Sy_L));
+    Gyr = normalize(gradient(Sy_R));
+    Gzl = normalize(gradient(Sz_L));
+    Gzr = normalize(gradient(Sz_R));
 
-    % calculate the gradient
-    Gl = gradient(S_L);
-    Gr = gradient(S_R);
+    if plotting 
+         figure 
+         plot(Sy_L)
+         hold on 
+         plot(Sy_R)
+         plot(Sz_L)
+         plot(Sz_R)
+         hold off
+         title("function")
+         legend()
+
+        figure 
+        plot(Gyl)
+        hold on 
+        plot(Gyr)
+        plot(Gzl)
+        plot(Gzr)
+        hold off
+        title("derivarive")
+        legend()
+     end
+
 
     %initialisation
     Gate = [];
@@ -124,20 +148,27 @@ function Gate = cut_gate(data,constraint)
 
     % calculate the position
     i = 1;
-    while i <=(length(Gl)-1)
+    while i <=(length(Gyl)-1)
         i = i+1;
-        if sign(Gl(i)) ~= sign(Gl(i-1)) && sign(Gl(i)) < 0 
+        %start of the forward movement -> foot off
+        if sign(Gyl(i)) ~= sign(Gyl(i-1)) && sign(Gyl(i)) < 0 
             
+             while abs(Gzl(i)) > 1 && i <=(length(Gyl)-1)
+                 i = i+1;
+             end
+
             if isfield(gate,'strikeR')
                 
                 gate.offnext = i;
                 gate.duration = gate.offnext - gate.offL;
-                gate.stepL = S_L(gate.offL)-S_L(gate.strikeL);
-                gate.stepR = S_R(gate.offR)-S_R(gate.strikeR);
+                gate.stepL = Sy_L(gate.offL)-Sy_L(gate.strikeL);
+                gate.stepR = Sy_R(gate.offR)-Sy_R(gate.strikeR);
                 
-                % we don't take the speed in account, bad but anyway it
-                % does work because remove only in SCI (slow)
-                if not(constraint) || (constraint && gate.duration*T <=4 && gate.stepL>50 && gate.stepR>50)
+                % we don't take the speed in account, just arbitrary for
+                % step but will remore every oscillation of the legs (not
+                % proper step), also remove too long gate (when we probably
+                % miss a event)
+                if not(constraint) || (constraint && gate.duration*T <=4 && gate.stepL>80 && gate.stepR>80)
                     Gate = [Gate,gate];
                 elseif constraint  
                     disp(['remove a gate with duration',num2str(gate.duration),'in position',num2str(gate.offL)])
@@ -148,13 +179,29 @@ function Gate = cut_gate(data,constraint)
             gate = [];
             gate.offL = i;
 
-            while on_gate && i <=(length(Gl)-1)
+
+            while on_gate && i <=(length(Gyl)-1)
                 i = i+1;
-                if sign(Gl(i-1)) ~= sign(Gl(i)) && sign(Gl(i)) > 0 && isfield(gate,'offL')
-                    gate.strikeL = i;
-                elseif sign(Gr(i-1)) ~= sign(Gr(i)) && sign(Gr(i)) < 0 && isfield(gate,'strikeL')
+
+                %end of forward movement
+                if sign(Gyl(i-1)) ~= sign(Gyl(i)) && sign(Gyl(i)) > 0 && isfield(gate,'offL')
+                      while abs(Gzl(i)) > 1 && i <=(length(Gyl)-1)
+                          i = i+1;
+                      end
+                     gate.strikeL = i;
+
+                %start other limb forward movement
+                elseif sign(Gyr(i-1)) ~= sign(Gyr(i)) && sign(Gyr(i)) < 0 && isfield(gate,'strikeL')
+                     while abs(Gzr(i)) > 1 && i <=(length(Gyl)-1)
+                         i = i+1;
+                     end
                     gate.offR = i;
-                elseif sign(Gr(i-1)) ~= sign(Gr(i)) && sign(Gr(i)) > 0 && isfield(gate,'offR')
+
+                %end of other limb forward movement
+                elseif sign(Gyr(i-1)) ~= sign(Gyr(i)) && sign(Gyr(i)) > 0 && isfield(gate,'offR')
+                    while abs(Gzr(i)) > 1 && i <=(length(Gyl)-1)
+                        i = i+1;
+                    end
                     gate.strikeR = i;
                     on_gate = false;
                 end
@@ -190,7 +237,7 @@ function plot_gate(data,N1,N2,side,frame, dec, double_dec)
     color_gateoff = 'red';
     color_gatestrike = 'blue';
 
-    Gate = cut_gate(data,true);
+    Gate = cut_gate(data,true,true);
 
     V = 1;
     while V < length(Gate) && Gate(V).offL < Min
@@ -282,7 +329,7 @@ function animate(data, start, stop,dec)
 
     % calculate timing left and right
 
-    Gate = cut_gate(data,true);
+    Gate = cut_gate(data,true,true);
     
     V = 1;
     if start >= Gate(V).offnext && V < length(Gate)
