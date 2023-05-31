@@ -690,10 +690,10 @@ function parameters = gate_global_parameters(parameters,Global)
     %get the global values dependent parameters (for exemple the
     %variability)
     for i = 1:(length(parameters))
-%          parameters(i).var_step_height_left_mm = abs(Global.mean_step_height_left- parameters(i).step_height_left_mm)/Global.mean_step_height_left*100;
-%          parameters(i).var_step_height_right_mm = abs(Global.mean_step_height_right- parameters(i).step_height_right_mm)/Global.mean_step_height_right*100;
-%          parameters(i).var_step_length_left_mm = abs(Global.mean_step_length_left- parameters(i).step_length_left_mm)/Global.mean_step_length_left*100;
-%          parameters(i).var_step_length_right_mm = abs(Global.mean_step_length_right- parameters(i).step_length_right_mm)/Global.mean_step_length_right*100;
+          parameters(i).var_step_height_left_mm = abs(Global.mean_step_height_left- parameters(i).step_height_left_mm)/Global.mean_step_height_left*100;
+          parameters(i).var_step_height_right_mm = abs(Global.mean_step_height_right- parameters(i).step_height_right_mm)/Global.mean_step_height_right*100;
+          parameters(i).var_step_length_left_mm = abs(Global.mean_step_length_left- parameters(i).step_length_left_mm)/Global.mean_step_length_left*100;
+          parameters(i).var_step_length_right_mm = abs(Global.mean_step_length_right- parameters(i).step_length_right_mm)/Global.mean_step_length_right*100;
           parameters(i).var_stridewidth = abs(Global.mean_stridewidth- parameters(i).stridewidth_mm)/Global.mean_stridewidth*100;
 
          
@@ -734,11 +734,11 @@ function parameters =  remove_param(parameters)
     %parameters = rmfield(parameters,"step_height_right_mm");
     %parameters = rmfield(parameters,"step_height_left_mm");
 
-    parameters = rmfield(parameters,"amplitude_emg_LSol");
-    parameters = rmfield(parameters,"amplitude_emg_RSol");
-    parameters = rmfield(parameters,"amplitude_emg_LTA");
-    parameters = rmfield(parameters,"amplitude_emg_RTA");
-    parameters = rmfield(parameters,"amplitude_emg_LMG");
-    parameters = rmfield(parameters,"amplitude_emg_RMG");
+     parameters = rmfield(parameters,"amplitude_emg_LSol");
+     parameters = rmfield(parameters,"amplitude_emg_RSol");
+     parameters = rmfield(parameters,"amplitude_emg_LTA");
+     parameters = rmfield(parameters,"amplitude_emg_RTA");
+     parameters = rmfield(parameters,"amplitude_emg_LMG");
+     parameters = rmfield(parameters,"amplitude_emg_RMG");
     
 end

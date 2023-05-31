@@ -168,7 +168,7 @@ function Gate = cut_gate(data,constraint,plotting)
                 % step but will remore every oscillation of the legs (not
                 % proper step), also remove too long gate (when we probably
                 % miss a event)
-                if not(constraint) || (constraint && gate.duration*T <=4 && gate.stepL>80 && gate.stepR>80)
+                if not(constraint) || (constraint && gate.duration*T <=4 && gate.duration*T >0.5 && gate.stepL>80 && gate.stepR>80)
                     Gate = [Gate,gate];
                 elseif constraint  
                     disp(['remove a gate with duration',num2str(gate.duration),'in position',num2str(gate.offL)])
