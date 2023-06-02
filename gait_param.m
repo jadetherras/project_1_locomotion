@@ -7,8 +7,10 @@
 clear;
 close all;
 
-%% Loading the data jade
+%% Loading the data
 
+% name of the trial
+name = 'PCA without amplitude';
 %dataset sain 
 data_healthy_1_2kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML01_2kmh.mat");
 data_healthy_2_2kmh=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML02_2kmh.mat");
@@ -30,83 +32,7 @@ data_SCI_2kmh=load("SCI Human/DM002_TDM_08_2kmh.mat");
 
 data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
 
-% %% Loading the data Lena
-% 
-% %dataset sain 
-% data_healthy_1_2kmh=load("DATA/1_AML01_2kmh.mat");
-% data_healthy_2_2kmh=load("DATA/1_AML02_2kmh.mat");
-% 
-% data_healthy_1_1kmh=load("DATA/3_AML01_1kmh.mat");
-% data_healthy_2_1kmh=load("DATA/3_AML02_1kmh.mat");
-% 
-% data_healthy_1_3kmh=load("DATA/4_AML01_3kmh.mat");
-% data_healthy_2_3kmh=load("DATA/4_AML02_3kmh.mat");
-% 
-% % dataset SCI Human
-% data_SCI_1kmh=load("Dataset SCI Human/SCI Human/DM002_TDM_08_1kmh.mat");
-% data_SCI_2kmh=load("Dataset SCI Human/SCI Human/DM002_TDM_08_2kmh.mat");
-% 
-% %dataset SCI Human noEES
-% 
-% data_SCI_1kmh_NoEES=load("Dataset SCI Human/SCI Human/DM002_TDM_1kmh_NoEES.mat");
-
-% 
-% % Loading the data Lucas
-% 
-% %dataset sain 
-% data_healthy_1_2kmh=load("Healthy/1_AML01_2kmh.mat");
-% data_healthy_2_2kmh=load("Healthy/1_AML02_2kmh.mat");
-% 
-% data_healthy_1_1kmh=load("Healthy/3_AML01_1kmh.mat");
-% data_healthy_2_1kmh=load("Healthy/3_AML02_1kmh.mat");
-% 
-% data_healthy_1_3kmh=load("Healthy/4_AML01_3kmh.mat");
-% data_healthy_2_3kmh=load("Healthy/4_AML02_3kmh.mat");
-% 
-% % dataset SCI Human
-% data_SCI_1kmh=load("SCI Human/DM002_TDM_08_1kmh.mat");
-% data_SCI_2kmh=load("SCI Human/DM002_TDM_08_2kmh.mat");
-% 
-% %dataset SCI Human noEES
-% 
-% data_SCI_1kmh_NoEES=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
-
 %% calculation of all parameters
-
-% we can do all at one, just for optimisation
-
-% % test plot
-%  plot(data_healthy.data.LTOE(27:191,2))
-%      hold on
-%      plot(data_healthy.data.RTOE(27:191,2))
-%      plot(filtering(data_healthy.data.LTOE(27:191,2)))
-%      plot(filtering(data_healthy.data.RTOE(27:191,2)))
-%      legend(["1","2","3","4"])
-%      hold off
-
-% calculate parameters
-
- %Gate = cut_gate(data_healthy_1_3kmh_inclined.data);
- 
-%   n = size(data_healthy_1_2kmh.data.LTOE(:,2));
-%   t = 12166:12348;
-%   t = t/100;
-%   plot(t,[data_healthy_1_2kmh.data.LTOE(12166:12348,2),filtering(data_healthy_1_2kmh.data.LTOE(12166:12348,2)),data_healthy_1_2kmh.data.RTOE(12166:12348,2),filtering(data_healthy_1_2kmh.data.RTOE(12166:12348,2))]);
-%   legend('L','L f','R','R f');
-% 
-% figure
-% t = 2056:2355;
-% t = t/100;
-% plot(t,[data_healthy_1_1kmh.data.LTOE(2056:2355,2),filtering(data_healthy_1_1kmh.data.LTOE(2056:2355,2)),data_healthy_1_1kmh.data.RTOE(2056:2355,2),filtering(data_healthy_1_1kmh.data.RTOE(2056:2355,2))]);
-% legend('L','L f','R','R f');
-% 
-% gate_parameters(data_healthy_1_1kmh.data, 2056, 2355,1)
-% 
-% figure
-% t = 211:494;
-% t = t/100;
-% plot(t,[data_healthy_1_1kmh.data.LTOE(211:494,2),filtering(data_healthy_1_1kmh.data.LTOE(211:494,2)),data_healthy_1_1kmh.data.RTOE(211:494,2),filtering(data_healthy_1_1kmh.data.RTOE(211:494,2))]);
-% legend('L','L f','R','R f');
 
 parameters_healthy_1_1kmh = calculated_parameters(data_healthy_1_1kmh.data,1);
 parameters_healthy_2_1kmh = calculated_parameters(data_healthy_2_1kmh.data,1);
@@ -189,15 +115,17 @@ yticks = linspace(1, size(val_label,1),size(val_label,1));
 set(gca, 'YTick', yticks, 'YTickLabel',transpose(val_label))
 colorbar
 
+saveas(gcf,strcat('figure/covMatrix ',name,'.png'))
+
 %% histogram parameters gate duration
 
 figure
 
 hist(prePCA(:,1),length(prePCA(:,1)))
-%hist(prePCA(:,1),100)
 title('histogram of gate duration')
 xlabel('duration')
 ylabel('number')
+saveas(gcf,strcat('figure/gate histogram ',name,'.png'))
 %% PCA
 
 [coefs,score, ~, ~, explained] = pca(PCA);
@@ -211,19 +139,28 @@ h = gca;
 h.YAxis(2).Limits = [0 100];
 h.YAxis(2).Color = h.YAxis(1).Color;
 h.YAxis(2).TickLabel = strcat(h.YAxis(2).TickLabel, '%');
+hold off
+title('explained variance in fonction of PC')
+saveas(gcf,strcat('figure/explained variance ',name,'.png'))
 
 pc1 = score(:,1);
 pc2 = score(:,2);
 pc3 = score(:,3);
 
 figure
+title('PC1/PC2')
 gscatter(pc1,pc2,color);
+saveas(gcf,strcat('figure/PC1 & PC2 ',name,'.png'))
 
 figure
+title('PC1/PC3')
 gscatter(pc1,pc3,color);
+saveas(gcf,strcat('figure/PC1 & PC3 ',name,'.png'))
 
 figure
+title('PC2/PC3')
 gscatter(pc2,pc3,color);
+saveas(gcf,strcat('figure/PC2 & PC3 ',name,'.png'))
 
 figure
 scatter3(pc1,pc2,pc3, 1, color);
@@ -231,12 +168,22 @@ title('PCA')
 xlabel('pc1')
 ylabel('pc2')
 zlabel('pc3')
+saveas(gcf,strcat('figure/PC3D ',name,'.png'))
 
 figure
+title('biplot 3D')
 biplot(coefs(:,1:3),'VarLabels',val_label);
+saveas(gcf,strcat('biplot ',name,'.png'))
 
 figure
+title('biplot PC1PC2')
 biplot(coefs(:,1:2),'VarLabels',val_label);
+saveas(gcf,strcat('biplot PC1PC2',name,'.png'))
+
+figure
+title('biplot PC2PC3')
+biplot(coefs(:,2:3),'VarLabels',val_label);
+saveas(gcf,strcat('biplot PC2PC3',name,'.png'))
 %biplot(coefs(:,1:2),'Scores',score(:,1:2),'VarLabels',val_label);
 
 %% Basic functions
@@ -278,9 +225,9 @@ function Gate = cut_gate(data,constraint,plotting)
          plot(Sy_R)
          plot(Sz_L)
          plot(Sz_R)
-         hold off
-         title("function")
-         legend()
+         title(strcat('function'))
+         legend('Sy_L','Sy_R','Sz_L','Sz_R')
+         saveas(gcf,'function.png')
 
         figure 
         plot(Gyl)
@@ -288,9 +235,9 @@ function Gate = cut_gate(data,constraint,plotting)
         plot(Gyr)
         plot(Gzl)
         plot(Gzr)
-        hold off
-        title("derivarive")
-        legend()
+        title('derivative ')
+        legend('Gy_L','Gy_R','Gz_L','Gz_R')
+        saveas(gcf,'derivative.png')
      end
 
 
@@ -322,7 +269,7 @@ function Gate = cut_gate(data,constraint,plotting)
                 % step but will remore every oscillation of the legs (not
                 % proper step), also remove too long gate (when we probably
                 % miss a event)
-                if not(constraint) || (constraint && gate.duration*T <=4 && gate.stepL>80 && gate.stepR>80)
+                if not(constraint) || (constraint && gate.duration*T <=4 && gate.duration*T >0.5 && gate.stepL>80 && gate.stepR>80)
                     Gate = [Gate,gate];
                 elseif constraint  
                     disp(['remove a gate with duration',num2str(gate.duration),'in position',num2str(gate.offL)])
@@ -411,57 +358,49 @@ function parameter = gate_parameters(data,gate,S)
     parameter.swing_duration_left_sec = (gate.strikeL-gate.offL)*T;
     
     parameter.swing_duration_right_sec = (gate.strikeR-gate.offR)*T;
-
-    %parameter.swing_duration_symetry = abs(parameter.swing_duration_right_sec - parameter.swing_duration_left_sec);
-    parameter.swing_duration_symetry = 100*(parameter.swing_duration_right_sec - parameter.swing_duration_left_sec)/(0.5*(parameter.swing_duration_right_sec + parameter.swing_duration_left_sec));
+    %parameter.swing_duration_symetry = 100*(parameter.swing_duration_right_sec - parameter.swing_duration_left_sec)/(0.5*(parameter.swing_duration_right_sec + parameter.swing_duration_left_sec));
 
     parameter.stance_percentage_left = (parameter.gate_duration_sec - parameter.swing_duration_left_sec)/parameter.gate_duration_sec;
 
     parameter.stance_percentage_right = (parameter.gate_duration_sec - parameter.swing_duration_right_sec)/parameter.gate_duration_sec;
     
-    parameter.double_stance_percentage = 100*max(0,(parameter.gate_duration_sec-(parameter.swing_duration_left_sec+parameter.swing_duration_right_sec))/parameter.gate_duration_sec);
+    parameter.double_stance_percentage = (parameter.gate_duration_sec-(parameter.swing_duration_left_sec+parameter.swing_duration_right_sec))/parameter.gate_duration_sec;
     
-    parameter.stance_percentage_total = parameter.stance_percentage_right + parameter.stance_percentage_left - parameter.double_stance_percentage;
-    
-    parameter.step_height_left_mm = max(data.LANK(gate.offL:gate.offnext,3))-min(data.LANK(gate.offL:gate.offnext,3));
+    parameter.step_height_left_mm =  max(data.LANK(gate.offL:gate.offnext,3))-min(data.LANK(gate.offL:gate.offnext,3));
     
     parameter.step_length_left_mm = (abs(data.LANK(gate.strikeL,2) -data.LANK(gate.offL,2)) + parameter.swing_duration_left_sec*speed);
     
     parameter.step_height_right_mm = max(data.RANK(gate.offL:gate.offnext,3))-min(data.RANK(gate.offL:gate.offnext,3));
     
     parameter.step_length_right_mm = (abs(data.RANK(gate.strikeR,2)-(data.RANK(gate.offR,2))) + parameter.swing_duration_right_sec*speed);
-    
-    %parameter.step_height_symetry = abs(parameter.step_height_left_mm-parameter.step_height_right_mm);
 
-    parameter.step_height_symetry = 100*(parameter.step_height_left_mm-parameter.step_height_right_mm)/(0.5*(parameter.step_height_left_mm+parameter.step_height_right_mm));
+    %parameter.step_height_symetry = 100*(parameter.step_height_left_mm-parameter.step_height_right_mm)/(0.5*(parameter.step_height_left_mm+parameter.step_height_right_mm));
 
-    %parameter.step_length_symetry = abs(parameter.step_length_left_mm-parameter.step_length_right_mm);
-    parameter.step_length_symetry = 100*(parameter.step_length_left_mm-parameter.step_length_right_mm)/(0.5*(parameter.step_length_left_mm+parameter.step_length_right_mm));
+    %parameter.step_length_symetry = 100*(parameter.step_length_left_mm-parameter.step_length_right_mm)/(0.5*(parameter.step_length_left_mm+parameter.step_length_right_mm));
 
 
     parameter.stridewidth_mm = mean(data.LANK(gate.offL:gate.offnext,1) - data.RANK(gate.offL:gate.offnext,1));
 
 
     x1L = data.LKNE(gate.offL:gate.offnext,2);
-    x3L = data.LHIP(gate.offL:gate.offnext,2);
     x2L = data.LANK(gate.offL:gate.offnext,2);
+    x3L = data.LHIP(gate.offL:gate.offnext,2);
     
     y1L = data.LKNE(gate.offL:gate.offnext,3);
-    y3L = data.LHIP(gate.offL:gate.offnext,3);
     y2L = data.LANK(gate.offL:gate.offnext,3);
+    y3L = data.LHIP(gate.offL:gate.offnext,3);
 
     x1R = data.RKNE(gate.offL:gate.offnext,2);
-    x3R = data.RHIP(gate.offL:gate.offnext,2);
     x2R = data.RANK(gate.offL:gate.offnext,2);
+    x3R = data.RHIP(gate.offL:gate.offnext,2);
     
     y1R = data.RKNE(gate.offL:gate.offnext,3);
-    y3R = data.RHIP(gate.offL:gate.offnext,3);
     y2R = data.RANK(gate.offL:gate.offnext,3);
+    y3R = data.RHIP(gate.offL:gate.offnext,3);
 
-    x_hip_latL = data.LHIP(gate.offL:gate.offnext,1);
-    mean_x_hip_latL = mean(data.LHIP(:,1));
-    x_hip_latR = data.RHIP(gate.offL:gate.offnext,1);
-    mean_x_hip_latR = mean(data.RHIP(:,1));
+
+    medhip_lat = (data.LHIP(gate.offL:gate.offnext,1) + data.RHIP(gate.offL:gate.offnext,1))/2;
+    mean_medhip_lat = (mean(data.LHIP(:,1))+mean(data.RHIP(:,1)))/2;
 
     mean_y3L = mean(data.LHIP(:,3));
     mean_y3R = mean(data.RHIP(:,3));
@@ -475,23 +414,21 @@ function parameter = gate_parameters(data,gate,S)
     vel_angleR = gradient(angle_radR);
 
     % variability is defined as the difference with the mean value
-    parameter.var_lateral_hip_left_mm = mean(abs(mean_x_hip_latL-x_hip_latL))/mean_x_hip_latL*100;
-    parameter.var_lateral_hip_right_mm = mean(abs(mean_x_hip_latR-x_hip_latR))/mean_x_hip_latR*100;
+    parameter.var_lateral_midpoint_hip_mm = mean(abs(mean_medhip_lat-medhip_lat))/mean_medhip_lat*100;
+    
     parameter.var_ver_hip_left_mm = mean(abs(mean_y3L-y3L))/mean_y3L*100;
     parameter.var_ver_hip_right_mm = mean(abs(mean_y3R-y3R))/mean_y3R*100;
 
-    %joint angle
+    %knee joint angle
     parameter.max_joint_angle_left_deg = max(angle_radL);
     parameter.min_joint_angle_left_deg = min(angle_radL);
     parameter.max_angle_vel_left_deg = max(abs(vel_angleL));
 
-    
-    parameter.var_ver_hip_right_mm = var(y3R);
     parameter.max_joint_angle_right_deg = max(angle_radR);
     parameter.min_joint_angle_right_deg = min(angle_radR);
     parameter.max_angle_vel_right_deg = max(abs(vel_angleR));
 
-    % EMG
+     % EMG
 
     t_idx_emg = ((gate.offL-1)*(data.EMG_sr/data.marker_sr)+1:gate.offnext*data.EMG_sr/data.marker_sr);
     L_ag  = data.LSol(t_idx_emg);
@@ -507,19 +444,15 @@ function parameter = gate_parameters(data,gate,S)
 
     
     EMG_filtered = emgLib.filter_emg(data.LSol(t_idx_emg),data.EMG_sr,0);
-    %[parameter.amplitude_emg_LSol,parameter.integral_emg_LSol,parameter.rms_emg_LSol] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
     [parameter.amplitude_emg_LSol, ~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
     EMG_filtered = emgLib.filter_emg(data.RSol(t_idx_emg),data.EMG_sr,0);
-    %[parameter.amplitude_emg_RSol,parameter.integral_emg_RSol,parameter.rms_emg_RSol] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
     [parameter.amplitude_emg_RSol, ~, ~] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
     EMG_filtered_flexor_R = emgLib.filter_emg(data.RTA(t_idx_emg),data.EMG_sr,0);
-    %[parameter.amplitude_emg_RTA,parameter.integral_emg_RTA,parameter.rms_emg_RTA] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
     [parameter.amplitude_emg_RTA, ~, ~] = emgLib.emg_parameters(EMG_filtered_flexor_R,data.EMG_sr);
 
     EMG_filtered_flexor_L = emgLib.filter_emg(data.LTA(t_idx_emg),data.EMG_sr,0);
-    %[parameter.amplitude_emg_LTA,parameter.integral_emg_LTA,parameter.rms_emg_LTA] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
     [parameter.amplitude_emg_LTA,~, ~] = emgLib.emg_parameters(EMG_filtered_flexor_L,data.EMG_sr);
 
     EMG_filtered_extensor_L = emgLib.filter_emg(data.LMG(t_idx_emg),data.EMG_sr,0);
@@ -535,23 +468,6 @@ function parameter = gate_parameters(data,gate,S)
     
     parameter.flexorL_burst_duration = emgLib.calculate_burst_duration(EMG_filtered_flexor_L,data.EMG_sr,0);
     parameter.flexorR_burst_duration = emgLib.calculate_burst_duration(EMG_filtered_flexor_R,data.EMG_sr,0);
-
-
-%     EMG_filtered = emgLib.filter_emg(data.LMG(t_idx_emg),data.EMG_sr,0);
-%     [parameter.amplitude_emg_LMG,parameter.integral_emg_LMG,parameter.rms_emg_LMG] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-% 
-%     
-%     EMG_filtered = emgLib.filter_emg(data.LST(t_idx_emg),data.EMG_sr,0);
-%     [parameter.amplitude_emg_LST,parameter.integral_emg_LST,parameter.rms_emg_LST] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-% 
-%     %EMG_filtered = emgLib.filter_emg(data.LVLat(t_idx_emg),data.EMG_sr,0);
-%     %[parameter.amplitude_emg_LVLat,parameter.integral_emg_LVLat,parameter.rms_emg_LVLat] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-% 
-%     EMG_filtered = emgLib.filter_emg(data.LRF(t_idx_emg),data.EMG_sr,0);
-%     [parameter.amplitude_emg_LRF,parameter.integral_emg_LRF,parameter.rms_emg_LRF] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
-
-    %EMG_filtered = emgLib.filter_emg(data.LIl(t_idx_emg),data.EMG_sr,0);
-    %[parameter.amplitude_emg_LIl,parameter.integral_emg_LIl,parameter.rms_emg_LIl] = emgLib.emg_parameters(EMG_filtered,data.EMG_sr);
 
     
 end
@@ -580,14 +496,6 @@ function Global = get_global(parameters)
     mean_amplitude_emg_RTA      = 0;
     mean_amplitude_emg_RMG      = 0;
     mean_amplitude_emg_LMG      = 0;
-   
- 
-
-    %mean_amplitude_emg_LMG      = 0;
-    %mean_amplitude_emg_LST      = 0;
-    %mean_amplitude_emg_LVLat      = 0;
-    %mean_amplitude_emg_LRF      = 0;
-    %mean_amplitude_emg_LIl     = 0;
 
     mean_flexorL_burst_duration = 0;
     mean_extensorL_burst_duration = 0;
@@ -621,15 +529,7 @@ function Global = get_global(parameters)
             mean_amplitude_emg_RTA = mean_amplitude_emg_RTA + parameters(i).amplitude_emg_RTA;
             mean_amplitude_emg_RMG = mean_amplitude_emg_RMG + parameters(i).amplitude_emg_RMG;
             mean_amplitude_emg_LMG = mean_amplitude_emg_LMG + parameters(i).amplitude_emg_LMG;
-        
-        
-            
-
-            %mean_amplitude_emg_LMG = mean_amplitude_emg_LMG + parameters(i).amplitude_emg_LMG;
-            %mean_amplitude_emg_LST = mean_amplitude_emg_LST + parameters(i).amplitude_emg_LST;
-            %mean_amplitude_emg_LVLat = mean_amplitude_emg_LVLat + parameters(i).amplitude_emg_LVLat;
-            %mean_amplitude_emg_LRF = mean_amplitude_emg_LRF + parameters(i).amplitude_emg_LRF;
-            %mean_amplitude_emg_LIl = mean_amplitude_emg_LIl + parameters(i).amplitude_emg_LIl;
+      
 
             mean_flexorL_burst_duration = mean_flexorL_burst_duration + parameters(i).flexorL_burst_duration;
             mean_extensorL_burst_duration = mean_extensorL_burst_duration + parameters(i).extensorL_burst_duration;
@@ -670,16 +570,7 @@ function Global = get_global(parameters)
         
         Global.mean_flexorR_burst_duration = mean_flexorR_burst_duration/length(parameters);
         Global.mean_extensorR_burst_duration = mean_extensorR_burst_duration/length(parameters);
-%         
-
-%         Global.mean_amplitude_emg_LMG      = mean_amplitude_emg_LMG/length(parameters);
-%         Global.mean_amplitude_emg_LST      = mean_amplitude_emg_LST/length(parameters);
-%         %Global.mean_amplitude_emg_LVLat      = mean_amplitude_emg_LVLat/length(parameters);
-%         Global.mean_amplitude_emg_LRF      = mean_amplitude_emg_LRF/length(parameters);
-%         %Global.mean_amplitude_emg_LIl      = mean_amplitude_emg_LIl/length(parameters);
-%         % LTA_filtered = emgLib.filter_emg(data.LTA,0);
-%         % [burst_duration,Global.mean_amplitude_emg,Global.integral_emg,Global.rms_emg] = emgLib.emg_parameters(LTA_filtered,0);
-%         % Global.mean_burst_duration = mean(burst_duration);
+         
 
     end
 
@@ -697,7 +588,7 @@ function parameters = gate_global_parameters(parameters,Global)
           parameters(i).var_stridewidth = abs(Global.mean_stridewidth- parameters(i).stridewidth_mm)/Global.mean_stridewidth*100;
 
          
-%          %EMG 
+        %EMG 
          parameters(i).var_coactivation_index = abs(Global.mean_coactivation_index-parameters(i).coactivation_index)/Global.mean_coactivation_index*100;
          
          parameters(i).var_amplitude_emg_LSol = abs(Global.mean_amplitude_emg_LSol-parameters(i).amplitude_emg_LSol)/Global.mean_amplitude_emg_LSol*100;
@@ -716,29 +607,14 @@ function parameters = gate_global_parameters(parameters,Global)
          parameters(i).var_extensorR_burst_duration = abs(Global.mean_extensorR_burst_duration-parameters(i).extensorR_burst_duration)/Global.mean_extensorR_burst_duration;
 
          
-%           parameters(i).var_amplitude_emg_LMG = abs(Global.mean_amplitude_emg_LMG-parameters(i).amplitude_emg_LMG)/Global.mean_amplitude_emg_LMG*100;
-%           parameters(i).var_amplitude_emg_LST = abs(Global.mean_amplitude_emg_LST-parameters(i).amplitude_emg_LST)/Global.mean_amplitude_emg_LST*100;
-%           %parameters(i).var_amplitude_emg_LVLat = abs(Global.mean_amplitude_emg_LVLat-parameters(i).amplitude_emg_LVLat)/Global.mean_amplitude_emg_LVLat*100;
-%           parameters(i).var_amplitude_emg_LRF = abs(Global.mean_amplitude_emg_LRF-parameters(i).amplitude_emg_LRF)/Global.mean_amplitude_emg_LRF*100;
-%           %parameters(i).var_amplitude_emg_LIl = abs(Global.mean_amplitude_emg_LIl-parameters(i).amplitude_emg_LIl)/Global.mean_amplitude_emg_LIl*100;
 
     end
 end
 
 function parameters =  remove_param(parameters)
 
-    %parameters = rmfield(parameters,"gate_duration_sec");
-
-    %parameters = rmfield(parameters,"step_length_right_mm");
-    %parameters = rmfield(parameters,"step_length_left_mm");
-    %parameters = rmfield(parameters,"step_height_right_mm");
-    %parameters = rmfield(parameters,"step_height_left_mm");
-
      parameters = rmfield(parameters,"amplitude_emg_LSol");
      parameters = rmfield(parameters,"amplitude_emg_RSol");
      parameters = rmfield(parameters,"amplitude_emg_LTA");
      parameters = rmfield(parameters,"amplitude_emg_RTA");
-     parameters = rmfield(parameters,"amplitude_emg_LMG");
-     parameters = rmfield(parameters,"amplitude_emg_RMG");
-    
 end

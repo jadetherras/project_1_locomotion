@@ -119,41 +119,6 @@ classdef emgLib
             end 
 
 
-%             % Find local peaks in the signal
-%             [peaks, peak_locs] = findpeaks(signal);
-% %             % Sort peaks and peak_locs in ascending order
-% %             [peaks, sort_idx] = sort(peaks);
-% %             peak_locs = peak_locs(sort_idx);
-% 
-%             [max_peak,max_idx] = max(peaks);
-%             max_peak_loc = peak_locs(max_idx);
-% 
-% 
-%             
-% %             % Initialize onset and offset vectors
-% %             onset = zeros(size(peaks));
-% %             offset = zeros(size(peaks));
-%             
-%             % Loop through the peaks to find the corresponding onset and offset
-%             for i = 1:length(peaks)
-%                 % Find the onset
-%                 j = peak_locs(i);
-%                 j = max_peak_loc;
-%                 while j > 1 && signal(j) > signal(j-1) && signal(j) > threshold_on
-%                     j = j - 1;
-%                 end
-% %                 onset(i) = j;
-%                 onset = j;
-%                 
-%                 % Find the offset
-%                 j = peak_locs(i);
-%                 j = max_peak_loc;
-%                 while j < length(signal) && signal(j) > signal(j+1) && signal(j) > threshold_off
-%                     j = j + 1;
-%                 end
-%                 %offset(i) = j;
-%                 offset = j;
-%             end
         
         end
 

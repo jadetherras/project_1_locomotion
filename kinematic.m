@@ -13,18 +13,28 @@
 close all;
 
 %dataset sain 
+
+%choose a dataset
+%data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML01_2kmh.mat"); 
+%data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/1_AML02_2kmh.mat");
 %data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML01_1kmh.mat");
+%data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/3_AML02_1kmh.mat");
+data =load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML01_3kmh.mat");
 %data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/4_AML02_3kmh.mat");
-%data=load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/2_AML02_3kmh_inclined.mat");
+%data =load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/2_AML01_3kmh_inclined.mat");
+%data =load("Healthy dataset (CHUV recording - 03.03.2023)-20230310/2_AML02_3kmh_inclined.mat");
 
 
 % dataset SCI Human
 %data=load("SCI Human/DM002_TDM_08_1kmh.mat");
+%data=load("SCI Human/DM002_TDM_08_2kmh.mat");
 %data=load("SCI Human/DM002_TDM_1kmh_NoEES.mat");
+
+%provide a name for the trail
+name = ' 1km healthy';
 
 %% Plot the movement
 
-% animation : decomment the one you want (healthy, SCI)
 
 %test range
 
@@ -33,31 +43,29 @@ N = length(data.data.LHIP(:,1));
 
 %if you want just one gait
 start = 1; %this values come from the gate detection, we decided to plot one gait randomly
-stop = N;
+stop = 1500;
 
 T = 1/data.data.marker_sr;
-%dec = 1000/3600*T*1000; %change here the velocity
-dec = 0;
+dec = 1000/3600*T*1000; %change here the velocity
+%dec = 0;
 
 %visualisation 2 limb
-double_dec = 1000;
-%double_dec = 0;
+%double_dec = 1000;
+double_dec = 0;
 
 
 %filter the data (here toe) and gate calculation
 %S_L = filtering(data_healthy.data.LTOE(:,2));
 %time_L = gate(S_L);
 
-Gate = cut_gate(data.data,true,true);
+%if only cut the gate
+%Gate = cut_gate(data.data,true,true,name);
 
 %plot the gate cycle
-%plot_gate(data_healthy.data,start,stop,'B',1,dec,double_dec)
+%plot_gate(data.data,start,stop,'R',1,dec,double_dec,name)
 
 %animate the data for comparison with visualisation
-
-animate(data.data, start, stop,dec) 
-%animate(data_SCI.data)
-
+animate(data.data, start, stop,dec,name) 
 
 
 
@@ -71,37 +79,13 @@ function [S_f] = filtering(S)
     d1 = designfilt("lowpassiir",FilterOrder=2, HalfPowerFrequency=0.03,DesignMethod="butter");
     S_f = filtfilt(d1,highpass(S,1e-1,1e2));
 end
-    
-% gate : take a signal and calculate the gate cycle (using the gradient)
-% time take the value foot off and foot strike at the correct timing
-function time = gate(S) 
-
-    % calculate the gradient
-    G = gradient(S);
-    
-    %initialisation
-    time = {''};
-
-    % calculate the position
-    for i = 2:length(G)
-        if sign(G(i)) ~= sign(G(i-1)) % if change sign, pass 0
-            if sign(G(i)) > 0
-                time = [time,"foot strike"]; 
-            else
-                time = [time,"foot off"];
-            end
-        else
-            time = [time,""];
-        end
-    end
-
-end
+   
 
 % cut_gate : cut the date in gate cycle (using a gradient)
 % each value represent a foot strike
 % data is the dataset
 % gate is a array of position 
-function Gate = cut_gate(data,constraint,plotting) 
+function Gate = cut_gate(data,constraint,plotting,name) 
     
     T = 1/data.marker_sr;
 
@@ -125,8 +109,9 @@ function Gate = cut_gate(data,constraint,plotting)
          plot(Sz_L)
          plot(Sz_R)
          hold off
-         title("function")
-         legend()
+         title(strcat('function',name))
+         legend('Sy_L','Sy_R','Sz_L','Sz_R')
+         saveas(gcf,strcat('figure/function ',name,'.png'))
 
         figure 
         plot(Gyl)
@@ -135,8 +120,9 @@ function Gate = cut_gate(data,constraint,plotting)
         plot(Gzl)
         plot(Gzr)
         hold off
-        title("derivarive")
-        legend()
+        title(strcat('derivative ',name))
+        legend('Gy_L','Gy_R','Gz_L','Gz_R')
+        saveas(gcf,strcat('figure/derivative ',name,'.png'))
      end
 
 
@@ -224,11 +210,9 @@ end
 % treadmill so all the gate appear on the same position. If we want to
 % introduce a movement in y or visualise more gate cycle we can introduce a
 % decalage, like a velocity. if 0 all fixed. 
-function plot_gate(data,N1,N2,side,frame, dec, double_dec)
-
-    xlabel('x'), ylabel('y')
-    title('kinematic reconstruction')
-
+function plot_gate(data,N1,N2,side,frame, dec, double_dec,name)
+    
+    Gate = cut_gate(data,true,false,name);
     Min = ceil(N1/frame);
     Max = ceil(N2/frame);
 
@@ -237,7 +221,6 @@ function plot_gate(data,N1,N2,side,frame, dec, double_dec)
     color_gateoff = 'red';
     color_gatestrike = 'blue';
 
-    Gate = cut_gate(data,true,true);
 
     V = 1;
     while V < length(Gate) && Gate(V).offL < Min
@@ -313,6 +296,11 @@ function plot_gate(data,N1,N2,side,frame, dec, double_dec)
     end
 
     hold off
+
+    xlabel('x'), ylabel('y')
+    title(strcat('kinematic reconstruction for ',name))
+    saveas(gcf,strcat('figure/gate ',name,'.png'))
+
 end
 
 % animate : plot a animation of a dataset
@@ -322,14 +310,14 @@ end
 % the toe is use to cal
 % culate the gate
 % data is the dataset
-function animate(data, start, stop,dec)
+function animate(data, start, stop,dec,name)
 
     %marker = ["LHIP","LKNE", "LANK","LTOE"];
-    T = 1/(data.marker_sr*3);
+    T = 1/(data.marker_sr);
 
     % calculate timing left and right
 
-    Gate = cut_gate(data,true,true);
+    Gate = cut_gate(data,true,false,name);
     
     V = 1;
     if start >= Gate(V).offnext && V < length(Gate)
